@@ -4,6 +4,7 @@ go 1.17
 
 require (
 	github.com/cosmos/cosmos-sdk v0.45.0
+	github.com/lib/pq v1.10.2
 	github.com/tendermint/tendermint v0.34.14
 	google.golang.org/grpc v1.42.0
 )
