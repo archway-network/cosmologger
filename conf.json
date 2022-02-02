@@ -5,6 +5,8 @@
         "api_call_retry": 20,
         "call_timeout": 30
     },
+    
+    "subscriber_name":"cosmologger",
 
     "block_explorer": {
         "tx_hash":"https://www.mintscan.io/cosmos/txs/%s",
@@ -51,6 +53,21 @@
     },
 
     "bech32_prefix" : {
+        "account" :{
+            "address": "archway",
+            "pubkey": "archway"
+        },
+        "validator" :{
+            "address": "archwayvaloper",
+            "pubkey": "archwayvaloperpub"
+        },
+        "consensus" :{
+            "address": "archwayvalcons",
+            "pubkey": "archwayvalconspub"
+        }
+    },
+
+    "XX_bech32_prefix" : {
         "account" :{
             "address": "cosmos",
             "pubkey": "cosmospub"

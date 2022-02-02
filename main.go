@@ -8,14 +8,63 @@ import (
 	"os/signal"
 	"syscall"
 
+	tmClient "github.com/tendermint/tendermint/rpc/client/http"
+
+	"github.com/archway-network/cosmologger/block"
 	"github.com/archway-network/cosmologger/configs"
 	"github.com/archway-network/cosmologger/database"
 	"github.com/archway-network/cosmologger/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	tmClient "github.com/tendermint/tendermint/rpc/client/http"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 )
+
+/*--------------*/
+
+// // Parse URL and set defaults
+// func newParsedURL(remoteAddr string) (*parsedURL, error) {
+// 	u, err := url.Parse(remoteAddr)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+
+// 	// default to tcp if nothing specified
+// 	if u.Scheme == "" {
+// 		u.Scheme = protoTCP
+// 	}
+
+// 	pu := &parsedURL{
+// 		URL:          *u,
+// 		isUnixSocket: false,
+// 	}
+
+// 	if u.Scheme == protoUNIX {
+// 		pu.isUnixSocket = true
+// 	}
+
+// 	return pu, nil
+// }
+
+// func makeHTTPDialer(remoteAddr string) (func(string, string) (net.Conn, error), error) {
+// 	u, err := newParsedURL(remoteAddr)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+
+// 	protocol := u.Scheme
+
+// 	// accept http(s) as an alias for tcp
+// 	switch protocol {
+// 	case protoHTTP, protoHTTPS:
+// 		protocol = protoTCP
+// 	}
+
+// 	dialFn := func(proto, addr string) (net.Conn, error) {
+// 		return net.Dial(protocol, u.GetDialAddress())
+// 	}
+
+// 	return dialFn, nil
+// }
 
 func main() {
 
@@ -38,37 +87,50 @@ func main() {
 
 	/*-------------*/
 
-	// SetBech32Prefixes()
+	SetBech32Prefixes()
 
 	/*-------------*/
 
-	// c := tx.NewServiceClient()
-	// ctx, cancel := context.WithTimeout(context.Background(), time.Second*time.Duration(configs.Configs.GRPC.CallTimeout))
-	// defer cancel()
-
-	// response, err := c.
-
-	// client.EventsClient.Subscribe()
-
 	// defaultTMURI := "tcp://rpc.cosmos.network:443"
 	// defaultTMURI := "tcp://localhost:26657"
-	defaultTMURI := "tcp://192.168.188.26:26657"
+	// defaultTMURI := "tcp://192.168.188.26:26657"
+	// defaultTMURI := "http://192.168.188.26:26657"
+	// defaultTMURI := "https://65.21.229.173:443"
+	// defaultTMURI := "ws://65.21.229.173:26657"
+	// defaultTMURI := "tcp://35.196.115.108:31306" // Constantine
+	// defaultTMURI := "tcp://rpc.cosmos.network:443"
+	defaultTMURI := "https://rpc.cosmos.network:443"
 
 	fmt.Println("Connecting to the websocket...")
+
+	/*-----------------------*/
+
+	// creds := credentials.NewTLS(&tls.Config{})
+
+	// client := &http.Client{
+	// 	Transport: &http.Transport{
+	// 		TLSClientConfig: &tls.Config{
+	// 			// InsecureSkipVerify: false,
+	// 			ClientAuth: tls.VerifyClientCertIfGiven,
+	// 		},
+	// 	},
+	// }
+	// cli, err := tmClient.NewWithClient(defaultTMURI, "/websocket", client)
 	cli, err := tmClient.New(defaultTMURI, "/websocket")
 	if err != nil {
 		panic(err)
 	}
 
 	fmt.Println("Starting the client...")
-	err = cli.Start()
-	if err != nil {
+
+	if err := cli.Start(); err != nil {
 		panic(err)
 	}
 
+	fmt.Println("Listening...")
 	// Running the listeners
-
 	tx.Start(cli, db)
+	block.Start(cli, db)
 
 	// Exit gracefully
 
@@ -83,7 +145,7 @@ func main() {
 
 	//Time for cleanup before exit
 
-	if err := cli.UnsubscribeAll(context.Background(), "cosmologger"); err != nil {
+	if err := cli.UnsubscribeAll(context.Background(), configs.Configs.SubscriberName); err != nil {
 		panic(err)
 	}
 	if err := cli.Stop(); err != nil {

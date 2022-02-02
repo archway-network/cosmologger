@@ -3,7 +3,7 @@ package tx
 import (
 	"context"
 	"encoding/json"
-	"fmt"
+	"log"
 	"strconv"
 	"time"
 
@@ -16,31 +16,20 @@ import (
 
 func ProcessEvents(db *database.Database, evr coretypes.ResultEvent) error {
 
-	// jsonString, err := json.MarshalIndent(evr, "", "  ")
-	// if err != nil {
-	// return err
-	// }
+	rec := getTxRecordFromEvent(evr)
+	rec.LogTime = time.Now()
 
-	rec := GetTxRecordFromEvent(evr)
-
-	// tx := evr.Data.(tmTypes.EventDataTx)
-	fmt.Printf("\n\n\t=====================================================\n\nevr.Events: \n")
-	for i := range evr.Events {
-		fmt.Printf("\nType: %v", i)
-		for j := range evr.Events[i] {
-			fmt.Printf("\tAttr: %v ==> %s\n", j, evr.Events[i][j])
-		}
+	dbRow := rec.getDBRow()
+	delete(dbRow, database.FIELD_TX_EVENTS_TX_MEMO) //TODO: let's keep it NULL in order to be used in future development if needed
+	_, err := db.Insert(database.TABLE_TX_EVENTS, dbRow)
+	if err != nil {
+		return err
 	}
-
-	dbRow := rec.GetDBRow()
-	delete(dbRow, database.FIELD_TX_EVENTS_TX_MEMO)
-	delete(dbRow, database.FIELD_TX_EVENTS_LOG_TIME) // This will be set by the DB itself
-	db.Insert(database.TABLE_TX_EVENTS, dbRow)
 
 	return nil
 }
 
-func GetTxRecordFromEvent(evr coretypes.ResultEvent) TxRecord {
+func getTxRecordFromEvent(evr coretypes.ResultEvent) TxRecord {
 	var txRecord TxRecord
 
 	if evr.Events["tx.height"] != nil && len(evr.Events["tx.height"]) > 0 {
@@ -116,7 +105,7 @@ func GetTxRecordFromEvent(evr coretypes.ResultEvent) TxRecord {
 	return txRecord
 }
 
-func (t *TxRecord) GetDBRow() database.RowType {
+func (t TxRecord) getDBRow() database.RowType {
 	return database.RowType{
 
 		database.FIELD_TX_EVENTS_TX_HASH:      t.TxHash,
@@ -143,16 +132,17 @@ func Start(cli *tmClient.HTTP, db *database.Database) {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*time.Duration(configs.Configs.GRPC.CallTimeout))
 		defer cancel()
 
-		// eventChan, err := cli.Subscribe(ctx, "cosmologger", tmTypes.QueryForEvent(tmTypes.EventNewBlock).String())
-		eventChan, err := cli.Subscribe(ctx, "cosmologger", tmTypes.QueryForEvent(tmTypes.EventTx).String())
+		eventChan, err := cli.Subscribe(ctx, configs.Configs.SubscriberName, tmTypes.QueryForEvent(tmTypes.EventTx).String())
 		if err != nil {
 			panic(err)
 		}
 
 		for {
-			fmt.Println("\nWaiting for the new signal...")
 			evRes := <-eventChan
-			ProcessEvents(db, evRes)
+			err := ProcessEvents(db, evRes)
+			if err != nil {
+				log.Printf("Error in processing TX event: %v", err)
+			}
 		}
 	}()
 }

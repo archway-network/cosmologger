@@ -20,3 +20,25 @@ const (
 )
 
 /*-------------------*/
+
+const TABLE_BLOCKS = "blocks"
+
+const (
+	FIELD_BLOCKS_BLOCK_HASH = "blockHash"
+	FIELD_BLOCKS_HEIGHT     = "height"
+	FIELD_BLOCKS_NUM_OF_TXS = "numOfTxs"
+	FIELD_BLOCKS_TIME       = "time"
+)
+
+/*-------------------*/
+
+const TABLE_BLOCK_SIGNERS = "block_signers"
+
+const (
+	FIELD_BLOCK_SIGNERS_BLOCK_HEIGHT  = "blockHeight"
+	FIELD_BLOCK_SIGNERS_VAL_CONS_ADDR = "valConsAddr"
+	FIELD_BLOCK_SIGNERS_TIME          = "time"
+	FIELD_BLOCK_SIGNERS_SIGNATURE     = "signature"
+)
+
+/*-------------------*/
