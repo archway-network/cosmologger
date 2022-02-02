@@ -21,18 +21,20 @@ func ProcessEvents(db *database.Database, evr *coretypes.ResultEvent) error {
 	fmt.Printf("Block: %s\n", rec.BlockHash)
 
 	dbRow := rec.getBlockDBRow()
-	_, err := db.Insert(database.TABLE_BLOCKS, dbRow)
-	if err != nil {
-		return err
-	}
+	db.InsertAsync(database.TABLE_BLOCKS, dbRow)
+	// _, err := db.Insert(database.TABLE_BLOCKS, dbRow)
+	// if err != nil {
+	// 	return err
+	// }
 
 	for i := range rec.Signers {
 
 		dbRow := rec.Signers[i].getBlockSignerDBRow()
-		_, err := db.Insert(database.TABLE_BLOCK_SIGNERS, dbRow)
-		if err != nil {
-			return err
-		}
+		db.InsertAsync(database.TABLE_BLOCK_SIGNERS, dbRow)
+		// _, err := db.Insert(database.TABLE_BLOCK_SIGNERS, dbRow)
+		// if err != nil {
+		// 	return err
+		// }
 	}
 
 	return nil

@@ -21,10 +21,11 @@ func ProcessEvents(db *database.Database, evr coretypes.ResultEvent) error {
 
 	dbRow := rec.getDBRow()
 	delete(dbRow, database.FIELD_TX_EVENTS_TX_MEMO) //TODO: let's keep it NULL in order to be used in future development if needed
-	_, err := db.Insert(database.TABLE_TX_EVENTS, dbRow)
-	if err != nil {
-		return err
-	}
+	db.InsertAsync(database.TABLE_TX_EVENTS, dbRow)
+	// _, err := db.Insert(database.TABLE_TX_EVENTS, dbRow)
+	// if err != nil {
+	// 	return err
+	// }
 
 	return nil
 }

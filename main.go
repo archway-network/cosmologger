@@ -13,6 +13,7 @@ import (
 	"github.com/archway-network/cosmologger/block"
 	"github.com/archway-network/cosmologger/configs"
 	"github.com/archway-network/cosmologger/database"
+	"github.com/archway-network/cosmologger/dbinit"
 	"github.com/archway-network/cosmologger/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"google.golang.org/grpc"
@@ -79,6 +80,9 @@ func main() {
 	db := database.New(database.Postgres, psqlconn)
 	defer db.Close()
 
+	// Check if we need to create tables and stuff on the DB
+	dbinit.DatabaseInit(db)
+
 	// conn, err := Connect()
 	// if err != nil {
 	// 	log.Fatalf("Did not connect: %s", err)
@@ -98,10 +102,17 @@ func main() {
 	// defaultTMURI := "https://65.21.229.173:443"
 	// defaultTMURI := "ws://65.21.229.173:26657"
 	// defaultTMURI := "tcp://35.196.115.108:31306" // Constantine
-	// defaultTMURI := "tcp://rpc.cosmos.network:443"
-	defaultTMURI := "https://rpc.cosmos.network:443"
+	// defaultTMURI := "https://rpc.constantine-1.archway.tech:443" // Constantine
+	// defaultTMURI := "wss://rpc.cosmos.network:443"
+	// defaultTMURI := "tcp://rpc.cosmos.network:26657"
+	// defaultTMURI := "tcp://77.87.108.21:26657"
 
 	fmt.Println("Connecting to the websocket...")
+
+	wsURI := os.Getenv("RPC_ADDRESS")
+
+	wsURI = "http://192.168.188.26:26657"
+	// wsURI = "ws://65.21.229.173:26657"
 
 	/*-----------------------*/
 
@@ -116,7 +127,7 @@ func main() {
 	// 	},
 	// }
 	// cli, err := tmClient.NewWithClient(defaultTMURI, "/websocket", client)
-	cli, err := tmClient.New(defaultTMURI, "/websocket")
+	cli, err := tmClient.New(wsURI, "/websocket")
 	if err != nil {
 		panic(err)
 	}

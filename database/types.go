@@ -24,3 +24,9 @@ type ExecResult struct {
 type RowType map[string]interface{}
 type QueryResult []RowType
 type QueryParams []interface{}
+
+type InsertQueueItem struct {
+	Table string
+	Row   RowType
+	DB    *Database
+}
