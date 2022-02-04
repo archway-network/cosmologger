@@ -22,12 +22,12 @@ services:
       networks:
         - archwaynetwork
       environment:
-        SERVING_ADDR: ${SERVING_ADDR:-:8080}
+        RPC_ADDRESS: ${RPC_ADDRESS:-wss://rpc.cosmos.network:443}
         POSTGRES_DB: ${POSTGRES_DB:-cosmologger}
         POSTGRES_USER: ${POSTGRES_USER:-root}
         POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
         POSTGRES_PORT: ${POSTGRES_PORT:-5432}
-        POSTGRES_HOST: ${POSTGRES_HOST:-postgres} #postgresql
+        POSTGRES_HOST: ${POSTGRES_HOST:-postgres}
       healthcheck:
         test: curl --fail http://localhost/ || exit 1
         interval: 30s

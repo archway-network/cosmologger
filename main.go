@@ -111,8 +111,11 @@ func main() {
 
 	wsURI := os.Getenv("RPC_ADDRESS")
 
-	wsURI = "http://192.168.188.26:26657"
+	wsURI = "tcp://192.168.188.26:26657"
 	// wsURI = "ws://65.21.229.173:26657"
+	// wsURI = "wss://rpc.cosmos.network:443"
+
+	// client := scclient.New(wsURI + "/websocket")
 
 	/*-----------------------*/
 
@@ -121,12 +124,13 @@ func main() {
 	// client := &http.Client{
 	// 	Transport: &http.Transport{
 	// 		TLSClientConfig: &tls.Config{
-	// 			// InsecureSkipVerify: false,
-	// 			ClientAuth: tls.VerifyClientCertIfGiven,
+	// 			InsecureSkipVerify: true,
+	// 			// ClientAuth:         tls.VerifyClientCertIfGiven,
+	// 			// Certificates:       []tls.Certificate{},
 	// 		},
 	// 	},
 	// }
-	// cli, err := tmClient.NewWithClient(defaultTMURI, "/websocket", client)
+	// cli, err := tmClient.NewWithClient(wsURI, "/websocket", client)
 	cli, err := tmClient.New(wsURI, "/websocket")
 	if err != nil {
 		panic(err)
@@ -163,7 +167,7 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Println("Ciao bello!")
+	fmt.Println("\nCiao bello!")
 }
 
 func Connect() (*grpc.ClientConn, error) {
