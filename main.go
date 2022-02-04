@@ -21,52 +21,6 @@ import (
 )
 
 /*--------------*/
-
-// // Parse URL and set defaults
-// func newParsedURL(remoteAddr string) (*parsedURL, error) {
-// 	u, err := url.Parse(remoteAddr)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	// default to tcp if nothing specified
-// 	if u.Scheme == "" {
-// 		u.Scheme = protoTCP
-// 	}
-
-// 	pu := &parsedURL{
-// 		URL:          *u,
-// 		isUnixSocket: false,
-// 	}
-
-// 	if u.Scheme == protoUNIX {
-// 		pu.isUnixSocket = true
-// 	}
-
-// 	return pu, nil
-// }
-
-// func makeHTTPDialer(remoteAddr string) (func(string, string) (net.Conn, error), error) {
-// 	u, err := newParsedURL(remoteAddr)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	protocol := u.Scheme
-
-// 	// accept http(s) as an alias for tcp
-// 	switch protocol {
-// 	case protoHTTP, protoHTTPS:
-// 		protocol = protoTCP
-// 	}
-
-// 	dialFn := func(proto, addr string) (net.Conn, error) {
-// 		return net.Dial(protocol, u.GetDialAddress())
-// 	}
-
-// 	return dialFn, nil
-// }
-
 func main() {
 
 	psqlconn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
@@ -94,18 +48,6 @@ func main() {
 	SetBech32Prefixes()
 
 	/*-------------*/
-
-	// defaultTMURI := "tcp://rpc.cosmos.network:443"
-	// defaultTMURI := "tcp://localhost:26657"
-	// defaultTMURI := "tcp://192.168.188.26:26657"
-	// defaultTMURI := "http://192.168.188.26:26657"
-	// defaultTMURI := "https://65.21.229.173:443"
-	// defaultTMURI := "ws://65.21.229.173:26657"
-	// defaultTMURI := "tcp://35.196.115.108:31306" // Constantine
-	// defaultTMURI := "https://rpc.constantine-1.archway.tech:443" // Constantine
-	// defaultTMURI := "wss://rpc.cosmos.network:443"
-	// defaultTMURI := "tcp://rpc.cosmos.network:26657"
-	// defaultTMURI := "tcp://77.87.108.21:26657"
 
 	fmt.Println("Connecting to the websocket...")
 

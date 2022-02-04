@@ -1,11 +1,11 @@
 version: '3.6'
 services:
-  main-app:
+  cosmologger:
       image: archwaynetwork/cosmologger:latest
       container_name: cosmologger
       build:
         context: ./
-        target: development  # development | test | production (default) # docker-compose up --build
+        # target: development  # development | test | production (default) # docker-compose up --build
       depends_on: 
         - postgres
       ports: 
@@ -19,6 +19,7 @@ services:
       volumes:
         - ./:/root/app
         - ./:/go/src/app
+        - ./conf.json:/root/app/conf.json
       networks:
         - archwaynetwork
       environment:

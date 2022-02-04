@@ -16,7 +16,7 @@ RUN apk add --no-cache \
 
 
 # Let's keep it in a separate layer
-RUN go build -o /build/app .
+RUN go build -mod=readonly -o /build/app .
 # ENTRYPOINT [ "dlv", "debug", "--headless", "--log", "--listen=:2345", "--api-version=2"]
 
 ENTRYPOINT ["tail", "-f", "/dev/null"]
@@ -40,12 +40,12 @@ COPY --from=development /build .
 RUN apk --no-cache add \
     curl 
 
-COPY ui/node_modules/react/umd ui/node_modules/react/umd
-COPY ui/node_modules/react-dom/umd ui/node_modules/react-dom/umd
-COPY ui/index.html \
-    ui/favicon.ico \
-    ui/
-COPY ui/dist ui/dist
+# COPY ui/node_modules/react/umd ui/node_modules/react/umd
+# COPY ui/node_modules/react-dom/umd ui/node_modules/react-dom/umd
+# COPY ui/index.html \
+#     ui/favicon.ico \
+#     ui/
+# COPY ui/dist ui/dist
 
 ENTRYPOINT ["./app"]
 
