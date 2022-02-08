@@ -18,7 +18,7 @@ import (
 func ProcessEvents(db *database.Database, evr *coretypes.ResultEvent) error {
 
 	rec := getBlockRecordFromEvent(evr)
-	fmt.Printf("Block: %s\n", rec.BlockHash)
+	fmt.Printf("Block: %s\tH: %d\n", rec.BlockHash, rec.Height)
 
 	dbRow := rec.getBlockDBRow()
 	db.InsertAsync(database.TABLE_BLOCKS, dbRow)

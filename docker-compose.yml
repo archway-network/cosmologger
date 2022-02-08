@@ -5,7 +5,7 @@ services:
       container_name: cosmologger
       build:
         context: ./
-        # target: development  # development | test | production (default) # docker-compose up --build
+        target: development  # development | test | production (default) # docker-compose up --build
       depends_on: 
         - postgres
       ports: 

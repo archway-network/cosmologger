@@ -5,6 +5,7 @@ go 1.17
 require (
 	github.com/cosmos/cosmos-sdk v0.45.0
 	github.com/lib/pq v1.10.2
+	github.com/sacOO7/socketcluster-client-go v1.0.0
 	github.com/tendermint/tendermint v0.34.14
 	google.golang.org/grpc v1.42.0
 )
@@ -50,6 +51,9 @@ require (
 	github.com/prometheus/common v0.29.0 // indirect
 	github.com/prometheus/procfs v0.6.0 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20200313005456-10cdbea86bc0 // indirect
+	github.com/rgamba/evtwebsocket v0.0.0-20181029234908-48b8cd9f8616 // indirect
+	github.com/sacOO7/go-logger v0.0.0-20180719173527-9ac9add5a50d // indirect
+	github.com/sacOO7/gowebsocket v0.0.0-20210515122958-9396f1a71e23 // indirect
 	github.com/sasha-s/go-deadlock v0.2.1-0.20190427202633-1595213edefa // indirect
 	github.com/spf13/afero v1.6.0 // indirect
 	github.com/spf13/cast v1.3.1 // indirect

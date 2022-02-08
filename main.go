@@ -53,9 +53,10 @@ func main() {
 
 	wsURI := os.Getenv("RPC_ADDRESS")
 
-	wsURI = "tcp://192.168.188.26:26657"
+	// wsURI = "tcp://192.168.188.26:26657"
 	// wsURI = "ws://65.21.229.173:26657"
 	// wsURI = "wss://rpc.cosmos.network:443"
+	// wsURI = "https://rpc.augusta-1.archway.tech:443"
 
 	// client := scclient.New(wsURI + "/websocket")
 
