@@ -14,7 +14,6 @@ func addToInsertQueue(db *Database, table string, row RowType) {
 	go func() {
 
 		insertQueueMutex.Lock()
-		defer insertQueueMutex.Unlock()
 
 		if insertQueue == nil {
 			insertQueue = list.New()
@@ -25,6 +24,7 @@ func addToInsertQueue(db *Database, table string, row RowType) {
 			DB:    db,
 		})
 
+		insertQueueMutex.Unlock()
 		executeInsertAsync()
 	}()
 }
