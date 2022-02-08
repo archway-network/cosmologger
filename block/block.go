@@ -13,9 +13,10 @@ import (
 	tmClient "github.com/tendermint/tendermint/rpc/client/http"
 	coretypes "github.com/tendermint/tendermint/rpc/core/types"
 	tmTypes "github.com/tendermint/tendermint/types"
+	"google.golang.org/grpc"
 )
 
-func ProcessEvents(db *database.Database, evr *coretypes.ResultEvent) error {
+func ProcessEvents(db *database.Database, grpcCnn *grpc.ClientConn, evr *coretypes.ResultEvent) error {
 
 	rec := getBlockRecordFromEvent(evr)
 	fmt.Printf("Block: %s\tH: %d\n", rec.BlockHash, rec.Height)
@@ -88,7 +89,7 @@ func (s *BlockSignersRecord) getBlockSignerDBRow() database.RowType {
 	}
 }
 
-func Start(cli *tmClient.HTTP, db *database.Database) {
+func Start(cli *tmClient.HTTP, grpcCnn *grpc.ClientConn, db *database.Database) {
 
 	go func() {
 
@@ -102,7 +103,7 @@ func Start(cli *tmClient.HTTP, db *database.Database) {
 
 		for {
 			evRes := <-eventChan
-			err := ProcessEvents(db, &evRes)
+			err := ProcessEvents(db, grpcCnn, &evRes)
 			if err != nil {
 				//TODO: We need some customizable log level
 				log.Printf("Error in processing block event: %v", err)

@@ -9,12 +9,14 @@ import (
 
 	"github.com/archway-network/cosmologger/configs"
 	"github.com/archway-network/cosmologger/database"
+	"github.com/archway-network/cosmologger/validators"
 	tmClient "github.com/tendermint/tendermint/rpc/client/http"
 	coretypes "github.com/tendermint/tendermint/rpc/core/types"
 	tmTypes "github.com/tendermint/tendermint/types"
+	"google.golang.org/grpc"
 )
 
-func ProcessEvents(db *database.Database, evr coretypes.ResultEvent) error {
+func ProcessEvents(db *database.Database, grpcCnn *grpc.ClientConn, evr coretypes.ResultEvent) error {
 
 	rec := getTxRecordFromEvent(evr)
 	rec.LogTime = time.Now()
@@ -26,6 +28,18 @@ func ProcessEvents(db *database.Database, evr coretypes.ResultEvent) error {
 	// if err != nil {
 	// 	return err
 	// }
+
+	//TODO: we need other conditions as well
+	if rec.Validator != "" {
+		// Just to make things non-blocking
+		go func() {
+			err := validators.AddNewValidator(db, grpcCnn, rec.Validator)
+			if err != nil {
+				log.Printf("Err in `AddNewValidator`: %v", err)
+				// return err
+			}
+		}()
+	}
 
 	return nil
 }
@@ -126,7 +140,7 @@ func (t TxRecord) getDBRow() database.RowType {
 	}
 }
 
-func Start(cli *tmClient.HTTP, db *database.Database) {
+func Start(cli *tmClient.HTTP, grpcCnn *grpc.ClientConn, db *database.Database) {
 
 	go func() {
 
@@ -140,7 +154,7 @@ func Start(cli *tmClient.HTTP, db *database.Database) {
 
 		for {
 			evRes := <-eventChan
-			err := ProcessEvents(db, evRes)
+			err := ProcessEvents(db, grpcCnn, evRes)
 			if err != nil {
 				log.Printf("Error in processing TX event: %v", err)
 			}

@@ -68,7 +68,6 @@ func CreateTables(db *database.Database) error {
 				"logTime" timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
 				CONSTRAINT tx_events_pkey PRIMARY KEY ("txHash")
 			)
-
 		TABLESPACE pg_default;`,
 
 		// `ALTER TABLE IF EXISTS public.tx_events OWNER to root;`,
@@ -77,7 +76,7 @@ func CreateTables(db *database.Database) error {
 			ON public.tx_events USING btree
 			(height ASC NULLS LAST)
 			INCLUDE(height)
-			TABLESPACE pg_default;`,
+		TABLESPACE pg_default;`,
 
 		`CREATE TABLE IF NOT EXISTS public.block_signers
 			(
@@ -97,8 +96,19 @@ func CreateTables(db *database.Database) error {
 			"time" timestamp without time zone,
 			CONSTRAINT blocks_pkey PRIMARY KEY ("blockHash")
 		)
-		
+			TABLESPACE pg_default;`,
+
+		`CREATE INDEX IF NOT EXISTS height_index
+		ON public.blocks USING btree
+		(height ASC NULLS LAST)
 		TABLESPACE pg_default;`,
+		`CREATE TABLE public.validators
+		(
+			"oprAddr" character varying(255) NOT NULL,
+			"consAddr" character varying(255) NOT NULL,
+			PRIMARY KEY ("oprAddr", "consAddr")
+		)
+			TABLESPACE pg_default;`,
 	}
 
 	for _, SQL := range SQList {

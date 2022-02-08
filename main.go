@@ -4,11 +4,10 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"log"
 	"os"
 	"os/signal"
 	"syscall"
-
-	tmClient "github.com/tendermint/tendermint/rpc/client/http"
 
 	"github.com/archway-network/cosmologger/block"
 	"github.com/archway-network/cosmologger/configs"
@@ -18,6 +17,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+
+	tmClient "github.com/tendermint/tendermint/rpc/client/http"
 )
 
 /*--------------*/
@@ -37,11 +38,12 @@ func main() {
 	// Check if we need to create tables and stuff on the DB
 	dbinit.DatabaseInit(db)
 
-	// conn, err := Connect()
-	// if err != nil {
-	// 	log.Fatalf("Did not connect: %s", err)
-	// }
-	// defer conn.Close()
+	// Due to some limitations of the RPC APIs we need to call GRPC ones as well
+	grpcCnn, err := GrpcConnect()
+	if err != nil {
+		log.Fatalf("Did not connect: %s", err)
+	}
+	defer grpcCnn.Close()
 
 	/*-------------*/
 
@@ -53,12 +55,10 @@ func main() {
 
 	wsURI := os.Getenv("RPC_ADDRESS")
 
-	// wsURI = "tcp://192.168.188.26:26657"
+	wsURI = "tcp://192.168.188.26:26657"
 	// wsURI = "ws://65.21.229.173:26657"
 	// wsURI = "wss://rpc.cosmos.network:443"
 	// wsURI = "https://rpc.augusta-1.archway.tech:443"
-
-	// client := scclient.New(wsURI + "/websocket")
 
 	/*-----------------------*/
 
@@ -87,8 +87,8 @@ func main() {
 
 	fmt.Println("Listening...")
 	// Running the listeners
-	tx.Start(cli, db)
-	block.Start(cli, db)
+	tx.Start(cli, grpcCnn, db)
+	block.Start(cli, grpcCnn, db)
 
 	// Exit gracefully
 
@@ -113,7 +113,7 @@ func main() {
 	fmt.Println("\nCiao bello!")
 }
 
-func Connect() (*grpc.ClientConn, error) {
+func GrpcConnect() (*grpc.ClientConn, error) {
 
 	if configs.Configs.GRPC.TLS {
 		creds := credentials.NewTLS(&tls.Config{})

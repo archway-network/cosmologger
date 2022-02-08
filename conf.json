@@ -1,7 +1,8 @@
 {
     "grpc":{
-        "server":"grpc.cosmos.network:443",
-        "tls": true,
+        "server":"192.168.188.26:9090",
+        "Xserver":"grpc.cosmos.network:443",
+        "tls": false,
         "api_call_retry": 20,
         "call_timeout": 30
     },
