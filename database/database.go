@@ -13,7 +13,7 @@ func New(DatabaseType DBType, params ...string) *Database {
 			return nil
 		}
 		newDB.SQLConn = NewPostgresDB(params[0])
-		newDB.PostgresInit()
+		// newDB.PostgresInit()
 	}
 
 	return &newDB
