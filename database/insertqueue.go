@@ -7,23 +7,27 @@ import (
 )
 
 var insertQueue *list.List
+var insertQueueMutex sync.Mutex
 
 func addToInsertQueue(db *Database, table string, row RowType) {
 
-	if insertQueue == nil {
-		insertQueue = list.New()
-	}
+	go func() {
 
-	insertQueue.PushBack(InsertQueueItem{
-		Table: table,
-		Row:   row,
-		DB:    db,
-	})
+		insertQueueMutex.Lock()
+		defer insertQueueMutex.Unlock()
 
-	executeInsertAsync()
+		if insertQueue == nil {
+			insertQueue = list.New()
+		}
+		insertQueue.PushBack(InsertQueueItem{
+			Table: table,
+			Row:   row,
+			DB:    db,
+		})
+
+		executeInsertAsync()
+	}()
 }
-
-var insertQueueMutex sync.Mutex
 
 func executeInsertAsync() {
 
