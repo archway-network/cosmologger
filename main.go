@@ -87,7 +87,7 @@ func main() {
 	var cliErr error
 	for i := 1; i <= configs.Configs.TendermintClient.ConnectRetry; i++ {
 
-		fmt.Printf("\r\tTrial #%d", i)
+		fmt.Printf("\tTrial #%d\n", i)
 		cliErr = cli.Start()
 		if cliErr == nil {
 			break
