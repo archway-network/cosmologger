@@ -25,6 +25,8 @@ import (
 /*--------------*/
 func main() {
 
+	/*-------------*/
+
 	psqlconn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
 		os.Getenv("POSTGRES_HOST"),
 		os.Getenv("POSTGRES_PORT"),
@@ -33,11 +35,15 @@ func main() {
 		os.Getenv("POSTGRES_DB"),
 	)
 
+	fmt.Printf("\nConnecting to the Database... ")
+
 	db := database.New(database.Postgres, psqlconn)
 	defer db.Close()
 
 	// Check if we need to create tables and stuff on the DB
 	dbinit.DatabaseInit(db)
+
+	fmt.Printf("\nDone")
 
 	/*-------------*/
 
@@ -45,7 +51,7 @@ func main() {
 
 	/*-------------*/
 
-	fmt.Printf("\nConnecting to the websocket...")
+	fmt.Printf("\nConnecting to the websocket... ")
 
 	wsURI := os.Getenv("RPC_ADDRESS")
 
@@ -76,7 +82,7 @@ func main() {
 
 	/*------------------*/
 
-	fmt.Println("\nStarting the client...")
+	fmt.Printf("\nStarting the client...\n")
 
 	var cliErr error
 	for i := 1; i <= configs.Configs.TendermintClient.ConnectRetry; i++ {
@@ -92,7 +98,7 @@ func main() {
 		panic(cliErr)
 	}
 
-	fmt.Println("Done")
+	fmt.Println("\nDone")
 
 	/*------------------*/
 
