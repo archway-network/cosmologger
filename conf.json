@@ -1,13 +1,15 @@
 {
     "grpc":{
         "server":"192.168.188.26:9090",
-        "Xserver":"grpc.cosmos.network:443",
         "tls": false,
         "api_call_retry": 20,
         "call_timeout": 30
     },
-    
-    "subscriber_name":"cosmologger",
+
+    "tendermint_client": {
+        "subscriber_name":"cosmologger",
+        "connect_retry": 60
+    },
 
     "bech32_prefix" : {
         "account" :{
@@ -21,21 +23,6 @@
         "consensus" :{
             "address": "archwayvalcons",
             "pubkey": "archwayvalconspub"
-        }
-    },
-
-    "XX_bech32_prefix" : {
-        "account" :{
-            "address": "cosmos",
-            "pubkey": "cosmospub"
-        },
-        "validator" :{
-            "address": "cosmosvaloper",
-            "pubkey": "cosmosvaloperpub"
-        },
-        "consensus" :{
-            "address": "cosmosvalcons",
-            "pubkey": "cosmosvalconspub"
         }
     }
 }

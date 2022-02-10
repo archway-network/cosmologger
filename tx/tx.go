@@ -147,7 +147,7 @@ func Start(cli *tmClient.HTTP, grpcCnn *grpc.ClientConn, db *database.Database) 
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*time.Duration(configs.Configs.GRPC.CallTimeout))
 		defer cancel()
 
-		eventChan, err := cli.Subscribe(ctx, configs.Configs.SubscriberName, tmTypes.QueryForEvent(tmTypes.EventTx).String())
+		eventChan, err := cli.Subscribe(ctx, configs.Configs.TendermintClient.SubscriberName, tmTypes.QueryForEvent(tmTypes.EventTx).String())
 		if err != nil {
 			panic(err)
 		}

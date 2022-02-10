@@ -8,7 +8,10 @@ type Configuration struct {
 		CallTimeout  int    `json:"call_timeout"`
 	} `json:"grpc"`
 
-	SubscriberName string `json:"subscriber_name"`
+	TendermintClient struct {
+		SubscriberName string `json:"subscriber_name"`
+		ConnectRetry   int    `json:"connect_retry"`
+	} `json:"tendermint_client"`
 
 	Bech32Prefix struct {
 		Account struct {

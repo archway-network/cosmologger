@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/archway-network/cosmologger/block"
 	"github.com/archway-network/cosmologger/configs"
@@ -38,20 +39,13 @@ func main() {
 	// Check if we need to create tables and stuff on the DB
 	dbinit.DatabaseInit(db)
 
-	// Due to some limitations of the RPC APIs we need to call GRPC ones as well
-	grpcCnn, err := GrpcConnect()
-	if err != nil {
-		log.Fatalf("Did not connect: %s", err)
-	}
-	defer grpcCnn.Close()
-
 	/*-------------*/
 
 	SetBech32Prefixes()
 
 	/*-------------*/
 
-	fmt.Println("Connecting to the websocket...")
+	fmt.Printf("\nConnecting to the websocket...")
 
 	wsURI := os.Getenv("RPC_ADDRESS")
 
@@ -78,20 +72,47 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	fmt.Printf("Done")
 
-	fmt.Println("Starting the client...")
+	/*------------------*/
 
-	if err := cli.Start(); err != nil {
-		panic(err)
+	fmt.Println("\nStarting the client...")
+
+	var cliErr error
+	for i := 1; i <= configs.Configs.TendermintClient.ConnectRetry; i++ {
+
+		fmt.Printf("\r\tTrial #%d", i)
+		cliErr = cli.Start()
+		if cliErr == nil {
+			break
+		}
+		time.Sleep(1 * time.Second)
 	}
+	if cliErr != nil {
+		panic(cliErr)
+	}
+
+	fmt.Println("Done")
+
+	/*------------------*/
+
+	// Due to some limitations of the RPC APIs we need to call GRPC ones as well
+	grpcCnn, err := GrpcConnect()
+	if err != nil {
+		log.Fatalf("Did not connect: %s", err)
+	}
+	defer grpcCnn.Close()
+
+	/*------------------*/
 
 	fmt.Println("Listening...")
 	// Running the listeners
 	tx.Start(cli, grpcCnn, db)
 	block.Start(cli, grpcCnn, db)
 
-	// Exit gracefully
+	/*------------------*/
 
+	// Exit gracefully
 	quitChannel := make(chan os.Signal, 1)
 	signal.Notify(quitChannel,
 		syscall.SIGTERM,
@@ -103,7 +124,7 @@ func main() {
 
 	//Time for cleanup before exit
 
-	if err := cli.UnsubscribeAll(context.Background(), configs.Configs.SubscriberName); err != nil {
+	if err := cli.UnsubscribeAll(context.Background(), configs.Configs.TendermintClient.SubscriberName); err != nil {
 		panic(err)
 	}
 	if err := cli.Stop(); err != nil {
