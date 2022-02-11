@@ -9,7 +9,6 @@ import (
 
 	"github.com/archway-network/cosmologger/configs"
 	"github.com/archway-network/cosmologger/database"
-	"github.com/archway-network/cosmologger/tx"
 	"github.com/archway-network/cosmologger/validators"
 	tmClient "github.com/tendermint/tendermint/rpc/client/http"
 	coretypes "github.com/tendermint/tendermint/rpc/core/types"
@@ -32,12 +31,12 @@ func ProcessEvents(db *database.Database, grpcCnn *grpc.ClientConn, evr coretype
 
 	//TODO: we need other conditions as well
 	if rec.Validator != "" ||
-		rec.Action == tx.ACTION_UNJAIL {
+		rec.Action == ACTION_UNJAIL {
 		// Just to make things non-blocking
 		go func() {
 
 			// When `unjail` actions is invoked, the validator address is in the `sender` filed
-			if rec.Action == tx.ACTION_UNJAIL {
+			if rec.Action == ACTION_UNJAIL {
 				rec.Validator = rec.Sender
 			}
 
