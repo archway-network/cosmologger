@@ -17,9 +17,8 @@ RUN apk add --no-cache \
 
 # Let's keep it in a separate layer
 RUN go build -mod=readonly -o /build/app .
-# ENTRYPOINT [ "dlv", "debug", "--headless", "--log", "--listen=:2345", "--api-version=2"]
-
-ENTRYPOINT ["tail", "-f", "/dev/null"]
+ENTRYPOINT [ "dlv", "debug", "--headless", "--log", "--listen=:2345", "--api-version=2"]
+# ENTRYPOINT ["tail", "-f", "/dev/null"]
 
 #----------------------------#
 
