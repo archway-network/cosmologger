@@ -78,6 +78,26 @@ func CreateTables(db *database.Database) error {
 			INCLUDE(height)
 		TABLESPACE pg_default;`,
 
+		`CREATE INDEX IF NOT EXISTS unjail_tx
+		ON public.tx_events USING btree
+		(action COLLATE pg_catalog."default" varchar_ops ASC NULLS LAST, sender COLLATE pg_catalog."default" varchar_ops ASC NULLS LAST)
+		TABLESPACE pg_default;`,
+
+		`CREATE INDEX IF NOT EXISTS action_indx
+		ON public.tx_events USING btree
+		(action COLLATE pg_catalog."default" ASC NULLS LAST)
+		TABLESPACE pg_default;`,
+
+		`CREATE INDEX IF NOT EXISTS sender
+		ON public.tx_events USING btree
+		(sender COLLATE pg_catalog."default" ASC NULLS LAST)
+		TABLESPACE pg_default;`,
+
+		`CREATE INDEX IF NOT EXISTS validator
+		ON public.tx_events USING btree
+		(validator COLLATE pg_catalog."default" ASC NULLS LAST)
+		TABLESPACE pg_default;`,
+
 		`CREATE TABLE IF NOT EXISTS public.block_signers
 			(
 				"blockHeight" bigint NOT NULL,
@@ -102,12 +122,23 @@ func CreateTables(db *database.Database) error {
 		ON public.blocks USING btree
 		(height ASC NULLS LAST)
 		TABLESPACE pg_default;`,
+
 		`CREATE TABLE public.validators
-		(
-			"oprAddr" character varying(255) NOT NULL,
-			"consAddr" character varying(255) NOT NULL,
-			PRIMARY KEY ("oprAddr", "consAddr")
-		)
+			(
+				"oprAddr" character varying(255) NOT NULL,
+				"consAddr" character varying(255) NOT NULL,
+				PRIMARY KEY ("oprAddr", "consAddr")
+			)
+			TABLESPACE pg_default;`,
+
+		`CREATE INDEX IF NOT EXISTS "blockHeight"
+			ON public.block_signers USING btree
+			("blockHeight" ASC NULLS LAST)
+			TABLESPACE pg_default;`,
+
+		`CREATE INDEX IF NOT EXISTS "valConsAddr"
+			ON public.block_signers USING btree
+			("valConsAddr" COLLATE pg_catalog."default" ASC NULLS LAST)
 			TABLESPACE pg_default;`,
 	}
 
