@@ -51,9 +51,9 @@ func main() {
 
 	/*-------------*/
 
-	fmt.Printf("\nConnecting to the websocket... ")
-
 	wsURI := os.Getenv("RPC_ADDRESS")
+
+	fmt.Printf("\nConnecting to the RPC [%s]... ", wsURI)
 
 	//TODO: There is a known issue with the TM client when we use TLS
 	// cli, err := tmClient.NewWithClient(wsURI, "/websocket", client)
