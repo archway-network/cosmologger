@@ -100,3 +100,22 @@ Here is what is inside the conf file:
         "connect_retry": 60
     }
 ```
+
+`bech32_prefix` Keeps the prefixes of the addresses and keys, it has to be configured according to the network configs that is being used.
+
+```json
+"bech32_prefix" : {
+        "account" :{
+            "address": "archway",
+            "pubkey": "archway"
+        },
+        "validator" :{
+            "address": "archwayvaloper",
+            "pubkey": "archwayvaloperpub"
+        },
+        "consensus" :{
+            "address": "archwayvalcons",
+            "pubkey": "archwayvalconspub"
+        }
+}
+```
