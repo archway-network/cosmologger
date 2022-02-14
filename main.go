@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -125,7 +126,9 @@ func main() {
 
 func GrpcConnect() (*grpc.ClientConn, error) {
 
-	if configs.Configs.GRPC.TLS {
+	tlsEnabled := os.Getenv("GRPC_TLS")
+
+	if strings.ToLower(tlsEnabled) == "true" {
 		creds := credentials.NewTLS(&tls.Config{})
 		return grpc.Dial(configs.Configs.GRPC.Server, grpc.WithTransportCredentials(creds))
 	}
