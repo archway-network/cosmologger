@@ -10,7 +10,7 @@ To have a development environment just run the following commands:
 ```bash
 git clone git@github.com:archway-network/cosmologger.git
 cd cosmologger
-docker-compose up -d
+docker-compose up -d --build
 ```
 
 Then enter the shell of the running dev-container:
