@@ -90,12 +90,13 @@ func main() {
 	grpcCnn, err := GrpcConnect()
 	if err != nil {
 		log.Fatalf("Did not connect: %s", err)
+		return
 	}
 	defer grpcCnn.Close()
 
 	/*------------------*/
 
-	fmt.Println("Listening...")
+	fmt.Println("\nListening...")
 	// Running the listeners
 	tx.Start(cli, grpcCnn, db)
 	block.Start(cli, grpcCnn, db)
@@ -127,12 +128,15 @@ func main() {
 func GrpcConnect() (*grpc.ClientConn, error) {
 
 	tlsEnabled := os.Getenv("GRPC_TLS")
+	GRPCServer := os.Getenv("GRPC_ADDRESS")
+
+	fmt.Printf("\nConnecting to the GRPC [%s] \tTLS: [%s]", GRPCServer, tlsEnabled)
 
 	if strings.ToLower(tlsEnabled) == "true" {
 		creds := credentials.NewTLS(&tls.Config{})
-		return grpc.Dial(configs.Configs.GRPC.Server, grpc.WithTransportCredentials(creds))
+		return grpc.Dial(GRPCServer, grpc.WithTransportCredentials(creds))
 	}
-	return grpc.Dial(configs.Configs.GRPC.Server, grpc.WithInsecure())
+	return grpc.Dial(GRPCServer, grpc.WithInsecure())
 
 }
 

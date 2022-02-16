@@ -8,13 +8,14 @@ import (
 	"github.com/archway-network/cosmologger/configs"
 	"github.com/archway-network/cosmologger/database"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/query"
 	staking "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"google.golang.org/grpc"
 
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 )
 
-func GetConsAddrByValAddr(grpcCnn *grpc.ClientConn, valAddr string) (string, error) {
+func queryConsAddrByValAddr(grpcCnn *grpc.ClientConn, valAddr string) (string, error) {
 
 	var err error
 	var response *staking.QueryValidatorResponse
@@ -84,7 +85,7 @@ func AddNewValidator(db *database.Database, grpcCnn *grpc.ClientConn, valAddr st
 		return nil
 	}
 
-	consAddr, err := GetConsAddrByValAddr(grpcCnn, valAddr)
+	consAddr, err := queryConsAddrByValAddr(grpcCnn, valAddr)
 	if err != nil {
 		return err
 	}
@@ -106,4 +107,65 @@ func (v ValidatorRecord) getDBRow() database.RowType {
 		database.FIELD_VALIDATORS_CONS_ADDR: v.ConsAddr,
 		database.FIELD_VALIDATORS_OPR_ADDR:  v.OprAddr,
 	}
+}
+
+func queryValidatorsSetByOffset(conn *grpc.ClientConn, offset int) (response *staking.QueryValidatorsResponse, err error) {
+
+	for retry := 0; retry < configs.Configs.GRPC.APICallRetry; retry++ {
+
+		c := staking.NewQueryClient(conn)
+
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*time.Duration(configs.Configs.GRPC.CallTimeout))
+		defer cancel()
+
+		response, err := c.Validators(ctx,
+			&staking.QueryValidatorsRequest{
+				// Status: status,
+				Pagination: &query.PageRequest{
+					// Key:    nextKey,
+					// Limit:  limit,
+					Offset: uint64(offset),
+					// Reverse: false,
+				},
+			})
+		if err != nil {
+			// fmt.Printf("\r[%d", retry+1)
+			fmt.Printf("\n[%d", retry+1)
+			// fmt.Printf("\r\tRetrying [ %d ]...", retry+1)
+			fmt.Printf("\tErr: %s", err)
+
+			// Ideally we want to retry after getting 502 http error, because sometimes server returns it
+			// but we cannot have it as the protobuf Invoke does not return the status code
+			time.Sleep(50 * time.Millisecond)
+			continue
+		}
+
+		return response, nil
+	}
+
+	return nil, err
+}
+
+func QueryValidatorsList(grpcCnn *grpc.ClientConn) ([]string, error) {
+
+	var validatorsList []string
+
+	offset := 0
+	for {
+		response, err := queryValidatorsSetByOffset(grpcCnn, offset)
+		if err != nil {
+			return validatorsList, err
+		}
+
+		if response == nil || len(response.Validators) == 0 {
+			break
+		}
+		offset += len(response.Validators)
+
+		for i := range response.Validators {
+			validatorsList = append(validatorsList, response.Validators[i].OperatorAddress)
+		}
+	}
+
+	return validatorsList, nil
 }

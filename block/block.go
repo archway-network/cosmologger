@@ -9,6 +9,7 @@ import (
 
 	"github.com/archway-network/cosmologger/configs"
 	"github.com/archway-network/cosmologger/database"
+	"github.com/archway-network/cosmologger/validators"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	tmClient "github.com/tendermint/tendermint/rpc/client/http"
 	coretypes "github.com/tendermint/tendermint/rpc/core/types"
@@ -16,10 +17,12 @@ import (
 	"google.golang.org/grpc"
 )
 
+var genesisValidatorsDone bool
+
 func ProcessEvents(db *database.Database, grpcCnn *grpc.ClientConn, evr *coretypes.ResultEvent) error {
 
 	rec := getBlockRecordFromEvent(evr)
-	fmt.Printf("Block: %s\tH: %d\n", rec.BlockHash, rec.Height)
+	fmt.Printf("Block: %s\tH: %d\tTxs: %d\n", rec.BlockHash, rec.Height, rec.NumOfTxs)
 
 	dbRow := rec.getBlockDBRow()
 	db.InsertAsync(database.TABLE_BLOCKS, dbRow)
@@ -36,6 +39,31 @@ func ProcessEvents(db *database.Database, grpcCnn *grpc.ClientConn, evr *coretyp
 		// if err != nil {
 		// 	return err
 		// }
+	}
+
+	// Let's add genesis validator's info
+	if !genesisValidatorsDone && rec.Height > 1 {
+		// In case we miss the block 2
+		genesisValidatorsDone = true
+
+		// Just to make things non-blocking
+		go func() {
+
+			valList, err := validators.QueryValidatorsList(grpcCnn)
+			if err != nil {
+				log.Printf("Err in `validators.QueryValidatorsList`: %v", err)
+				// return err
+			}
+
+			for i := range valList {
+				err := validators.AddNewValidator(db, grpcCnn, valList[i])
+				if err != nil {
+					log.Printf("Err in `AddNewValidator`: %v", err)
+					// return err
+				}
+			}
+
+		}()
 	}
 
 	return nil

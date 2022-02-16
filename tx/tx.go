@@ -29,7 +29,7 @@ func ProcessEvents(db *database.Database, grpcCnn *grpc.ClientConn, evr coretype
 	// 	return err
 	// }
 
-	//TODO: we need other conditions as well
+	// Let's add validator's info
 	if rec.Validator != "" ||
 		rec.Action == ACTION_UNJAIL {
 		// Just to make things non-blocking
