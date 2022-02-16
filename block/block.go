@@ -31,9 +31,9 @@ func ProcessEvents(db *database.Database, grpcCnn *grpc.ClientConn, evr *coretyp
 	// 	return err
 	// }
 
-	for i := range rec.Signers {
+	for i := range rec.LastBlockSigners {
 
-		dbRow := rec.Signers[i].getBlockSignerDBRow()
+		dbRow := rec.LastBlockSigners[i].getBlockSignerDBRow()
 		db.InsertAsync(database.TABLE_BLOCK_SIGNERS, dbRow)
 		// _, err := db.Insert(database.TABLE_BLOCK_SIGNERS, dbRow)
 		// if err != nil {
@@ -86,8 +86,8 @@ func getBlockRecordFromEvent(evr *coretypes.ResultEvent) *BlockRecord {
 			continue // just ignore this signer as it might not be running and we face some strange error
 		}
 
-		br.Signers = append(br.Signers, BlockSignersRecord{
-			BlockHeight: br.Height,
+		br.LastBlockSigners = append(br.LastBlockSigners, BlockSignersRecord{
+			BlockHeight: br.Height - 1, // Because the signers are for the previous block
 			ValConsAddr: consAddr.String(),
 			Time:        b.Block.LastCommit.Signatures[i].Timestamp,
 			Signature:   base64.StdEncoding.EncodeToString(b.Block.LastCommit.Signatures[i].Signature),
@@ -124,7 +124,11 @@ func Start(cli *tmClient.HTTP, grpcCnn *grpc.ClientConn, db *database.Database) 
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*time.Duration(configs.Configs.GRPC.CallTimeout))
 		defer cancel()
 
-		eventChan, err := cli.Subscribe(ctx, configs.Configs.TendermintClient.SubscriberName, tmTypes.QueryForEvent(tmTypes.EventNewBlock).String())
+		eventChan, err := cli.Subscribe(
+			ctx,
+			configs.Configs.TendermintClient.SubscriberName,
+			tmTypes.QueryForEvent(tmTypes.EventNewBlock).String(),
+		)
 		if err != nil {
 			panic(err)
 		}

@@ -10,9 +10,9 @@ type BlockSignersRecord struct {
 }
 
 type BlockRecord struct {
-	BlockHash string
-	Height    uint64
-	NumOfTxs  uint64
-	Time      time.Time
-	Signers   []BlockSignersRecord
+	BlockHash        string
+	Height           uint64
+	NumOfTxs         uint64
+	Time             time.Time
+	LastBlockSigners []BlockSignersRecord
 }
