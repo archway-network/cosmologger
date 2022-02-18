@@ -123,13 +123,15 @@ func CreateTables(db *database.Database) error {
 		(height ASC NULLS LAST)
 		TABLESPACE pg_default;`,
 
-		`CREATE TABLE public.validators
-			(
-				"oprAddr" character varying(255) NOT NULL,
-				"consAddr" character varying(255) NOT NULL,
-				PRIMARY KEY ("oprAddr", "consAddr")
-			)
-			TABLESPACE pg_default;`,
+		`CREATE TABLE IF NOT EXISTS public.validators
+		(
+			"oprAddr" character varying(255) COLLATE pg_catalog."default" NOT NULL,
+			"consAddr" character varying(255) COLLATE pg_catalog."default" NOT NULL,
+			"accountAddr" character varying(255) COLLATE pg_catalog."default" NOT NULL,
+			CONSTRAINT validators_pkey PRIMARY KEY ("oprAddr", "consAddr", "accountAddr")
+		)
+		
+		TABLESPACE pg_default;`,
 
 		`CREATE INDEX IF NOT EXISTS "blockHeight"
 			ON public.block_signers USING btree
