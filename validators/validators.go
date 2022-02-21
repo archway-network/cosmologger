@@ -52,6 +52,8 @@ func GetConsAddressFromConsPubKey(inKey []byte) string {
 
 	// For some unknown reasons there are two extra bytes in the begining of the key
 	// which cause the size error, so we remove them
+	//TODO: has to be fixed with legacy unmarshal
+
 	pubkey := &ed25519.PubKey{Key: inKey[2:]}
 	return sdk.ConsAddress(pubkey.Address().Bytes()).String()
 }
@@ -90,9 +92,16 @@ func AddNewValidator(db *database.Database, grpcCnn *grpc.ClientConn, valAddr st
 		return err
 	}
 
+	sdkValAddr, err := sdk.ValAddressFromBech32(valAddr)
+	if err != nil {
+		return err
+	}
+	accountAddr := sdk.AccAddress(sdkValAddr.Bytes()).String()
+
 	rec := ValidatorRecord{
-		ConsAddr: consAddr,
-		OprAddr:  valAddr,
+		ConsAddr:    consAddr,
+		OprAddr:     valAddr,
+		AccountAddr: accountAddr,
 	}
 
 	dbRow := rec.getDBRow()
@@ -104,8 +113,9 @@ func AddNewValidator(db *database.Database, grpcCnn *grpc.ClientConn, valAddr st
 func (v ValidatorRecord) getDBRow() database.RowType {
 	return database.RowType{
 
-		database.FIELD_VALIDATORS_CONS_ADDR: v.ConsAddr,
-		database.FIELD_VALIDATORS_OPR_ADDR:  v.OprAddr,
+		database.FIELD_VALIDATORS_CONS_ADDR:    v.ConsAddr,
+		database.FIELD_VALIDATORS_OPR_ADDR:     v.OprAddr,
+		database.FIELD_VALIDATORS_ACCOUNT_ADDR: v.AccountAddr,
 	}
 }
 

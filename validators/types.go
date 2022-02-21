@@ -1,6 +1,7 @@
 package validators
 
 type ValidatorRecord struct {
-	OprAddr  string
-	ConsAddr string
+	OprAddr     string
+	ConsAddr    string
+	AccountAddr string
 }
