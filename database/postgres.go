@@ -15,7 +15,7 @@ func NewPostgresDB(psqlconn string) *sql.DB {
 	// open database
 	db, err := sql.Open("postgres", psqlconn)
 	if err != nil {
-		panic(err)
+		panic(fmt.Errorf("DB Err: %v", err))
 	}
 
 	return db
@@ -104,7 +104,7 @@ func (db *Database) PostgresExec(query string, params QueryParams) (ExecResult, 
 
 	res, err := db.SQLConn.Exec(query, params...)
 	if err != nil {
-		return ExecResult{}, err
+		return ExecResult{}, fmt.Errorf("DB Err: %v", err)
 	}
 
 	var output ExecResult
@@ -142,13 +142,13 @@ func (db *Database) PostgresQuery(query string, params QueryParams) (QueryResult
 
 	rows, err := db.SQLConn.Query(query, params...)
 	if err != nil {
-		return output, err
+		return output, fmt.Errorf("DB Err: %v", err)
 	}
 	defer rows.Close()
 
 	columns, err := rows.Columns()
 	if err != nil {
-		return output, err
+		return output, fmt.Errorf("DB Err: %v", err)
 	}
 
 	colCounts := len(columns)
@@ -164,7 +164,7 @@ func (db *Database) PostgresQuery(query string, params QueryParams) (QueryResult
 
 		err = rows.Scan(scanArgs...)
 		if err != nil {
-			return output, err
+			return output, fmt.Errorf("DB Err: %v", err)
 		}
 
 		output = append(output, make(RowType, colCounts))
@@ -178,3 +178,7 @@ func (db *Database) PostgresQuery(query string, params QueryParams) (QueryResult
 }
 
 /*-----------------*/
+
+func (db *Database) PostgresInit() error {
+	return nil
+}

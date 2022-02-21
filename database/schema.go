@@ -46,9 +46,20 @@ const (
 const TABLE_VALIDATORS = "validators"
 
 const (
-	FIELD_VALIDATORS_CONS_ADDR    = "consAddr"
-	FIELD_VALIDATORS_OPR_ADDR     = "oprAddr"
-	FIELD_VALIDATORS_ACCOUNT_ADDR = "accountAddr"
+	FIELD_VALIDATORS_CONS_ADDR = "consAddr"
+	FIELD_VALIDATORS_OPR_ADDR  = "oprAddr"
+)
+
+/*-------------------*/
+
+const TABLE_PARTICIPANTS = "participants"
+
+const (
+	FIELD_PARTICIPANTS_ACCOUNT_ADDRESS = "accountAddress"
+	FIELD_PARTICIPANTS_FULL_LEGAL_NAME = "fullLegalName"
+	FIELD_PARTICIPANTS_GITHUB_HANDLE   = "githubHandle"
+	FIELD_PARTICIPANTS_EMAIL_ADDRESS   = "emailAddress"
+	FIELD_PARTICIPANTS_PUBKEY          = "pubkey"
 )
 
 /*-------------------*/
