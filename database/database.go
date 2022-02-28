@@ -40,45 +40,6 @@ func (db *Database) Insert(table string, fields RowType, tags ...map[string]stri
 	return ExecResult{}, nil //TODO: provide a useful error here
 }
 
-/*-----------------------*/
-
-func (db *Database) Update(table string, fields RowType, conditions RowType) (ExecResult, error) {
-
-	switch db.Type {
-	case Postgres:
-		return db.PostgresUpdate(table, fields, conditions)
-	}
-
-	return ExecResult{}, nil //TODO: provide a useful error here
-}
-
-/*-----------------------*/
-
-func (db *Database) Delete(table string, conditions RowType) (ExecResult, error) {
-
-	switch db.Type {
-	case Postgres:
-		return db.PostgresDelete(table, conditions)
-	}
-
-	return ExecResult{}, nil //TODO: provide a useful error here
-}
-
-/*-----------------------*/
-
-func (db *Database) Load(table string, searchOnFields RowType) (QueryResult, error) {
-
-	switch db.Type {
-	case Postgres:
-		return db.PostgresLoad(table, searchOnFields)
-	}
-
-	return QueryResult{}, nil //TODO: provide a useful error here
-
-}
-
-/*-----------------------*/
-
 func (db *Database) Query(query string, params QueryParams) (QueryResult, error) {
 
 	switch db.Type {
@@ -102,14 +63,3 @@ func (db *Database) Exec(query string, params QueryParams) (ExecResult, error) {
 	return ExecResult{}, nil //TODO: provide a useful error here
 
 }
-
-/*-----------------------*/
-
-// This function adds the insert commands to a queue in an async manner
-// in order to be able to do other stuff faster and not lose any events
-func (db *Database) InsertAsync(table string, fields RowType, tags ...map[string]string) {
-
-	addToInsertQueue(db, table, fields)
-}
-
-/*-----------------------*/
