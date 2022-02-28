@@ -19,13 +19,13 @@ import (
 
 var genesisValidatorsDone bool
 
-func ProcessEvents(db *database.Database, grpcCnn *grpc.ClientConn, evr *coretypes.ResultEvent) error {
+func ProcessEvents(grpcCnn *grpc.ClientConn, evr *coretypes.ResultEvent, db *database.Database, insertQueue *database.InsertQueue) error {
 
 	rec := getBlockRecordFromEvent(evr)
 	fmt.Printf("Block: %s\tH: %d\tTxs: %d\n", rec.BlockHash, rec.Height, rec.NumOfTxs)
 
 	dbRow := rec.getBlockDBRow()
-	db.InsertAsync(database.TABLE_BLOCKS, dbRow)
+	insertQueue.AddToInsertQueue(database.TABLE_BLOCKS, dbRow)
 	// _, err := db.Insert(database.TABLE_BLOCKS, dbRow)
 	// if err != nil {
 	// 	return err
@@ -34,7 +34,7 @@ func ProcessEvents(db *database.Database, grpcCnn *grpc.ClientConn, evr *coretyp
 	for i := range rec.LastBlockSigners {
 
 		dbRow := rec.LastBlockSigners[i].getBlockSignerDBRow()
-		db.InsertAsync(database.TABLE_BLOCK_SIGNERS, dbRow)
+		insertQueue.AddToInsertQueue(database.TABLE_BLOCK_SIGNERS, dbRow)
 		// _, err := db.Insert(database.TABLE_BLOCK_SIGNERS, dbRow)
 		// if err != nil {
 		// 	return err
@@ -117,7 +117,7 @@ func (s *BlockSignersRecord) getBlockSignerDBRow() database.RowType {
 	}
 }
 
-func Start(cli *tmClient.HTTP, grpcCnn *grpc.ClientConn, db *database.Database) {
+func Start(cli *tmClient.HTTP, grpcCnn *grpc.ClientConn, db *database.Database, insertQueue *database.InsertQueue) {
 
 	go func() {
 
@@ -135,7 +135,7 @@ func Start(cli *tmClient.HTTP, grpcCnn *grpc.ClientConn, db *database.Database) 
 
 		for {
 			evRes := <-eventChan
-			err := ProcessEvents(db, grpcCnn, &evRes)
+			err := ProcessEvents(grpcCnn, &evRes, db, insertQueue)
 			if err != nil {
 				//TODO: We need some customizable log level
 				log.Printf("Error in processing block event: %v", err)

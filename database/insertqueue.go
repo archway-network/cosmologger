@@ -30,7 +30,7 @@ func (i *InsertQueue) AddToInsertQueue(table string, row RowType) {
 	}
 }
 
-func (i *InsertQueue) start() error {
+func (i *InsertQueue) Start() error {
 	if i.closed {
 		return fmt.Errorf("queue is already closed")
 	}
@@ -53,7 +53,7 @@ func (i *InsertQueue) start() error {
 	return nil
 }
 
-func (i *InsertQueue) stop() {
+func (i *InsertQueue) Stop() {
 	i.closeProtection.Do(func() {
 		close(i.insert)
 		i.closed = true
