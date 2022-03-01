@@ -40,30 +40,6 @@ func (db *Database) Insert(table string, fields RowType, tags ...map[string]stri
 	return ExecResult{}, nil //TODO: provide a useful error here
 }
 
-func (db *Database) Query(query string, params QueryParams) (QueryResult, error) {
-
-	switch db.Type {
-	case Postgres:
-		return db.PostgresQuery(query, params)
-	}
-
-	return QueryResult{}, nil //TODO: provide a useful error here
-
-}
-
-/*-----------------------*/
-
-func (db *Database) Exec(query string, params QueryParams) (ExecResult, error) {
-
-	switch db.Type {
-	case Postgres:
-		return db.PostgresExec(query, params)
-	}
-
-	return ExecResult{}, nil //TODO: provide a useful error here
-
-}
-
 /*-----------------------*/
 
 func (db *Database) Update(table string, fields RowType, conditions RowType) (ExecResult, error) {
@@ -102,3 +78,27 @@ func (db *Database) Load(table string, searchOnFields RowType) (QueryResult, err
 }
 
 /*-----------------------*/
+
+func (db *Database) Query(query string, params QueryParams) (QueryResult, error) {
+
+	switch db.Type {
+	case Postgres:
+		return db.PostgresQuery(query, params)
+	}
+
+	return QueryResult{}, nil //TODO: provide a useful error here
+
+}
+
+/*-----------------------*/
+
+func (db *Database) Exec(query string, params QueryParams) (ExecResult, error) {
+
+	switch db.Type {
+	case Postgres:
+		return db.PostgresExec(query, params)
+	}
+
+	return ExecResult{}, nil //TODO: provide a useful error here
+
+}
