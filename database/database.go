@@ -63,3 +63,42 @@ func (db *Database) Exec(query string, params QueryParams) (ExecResult, error) {
 	return ExecResult{}, nil //TODO: provide a useful error here
 
 }
+
+/*-----------------------*/
+
+func (db *Database) Update(table string, fields RowType, conditions RowType) (ExecResult, error) {
+
+	switch db.Type {
+	case Postgres:
+		return db.PostgresUpdate(table, fields, conditions)
+	}
+
+	return ExecResult{}, nil //TODO: provide a useful error here
+}
+
+/*-----------------------*/
+
+func (db *Database) Delete(table string, conditions RowType) (ExecResult, error) {
+
+	switch db.Type {
+	case Postgres:
+		return db.PostgresDelete(table, conditions)
+	}
+
+	return ExecResult{}, nil //TODO: provide a useful error here
+}
+
+/*-----------------------*/
+
+func (db *Database) Load(table string, searchOnFields RowType) (QueryResult, error) {
+
+	switch db.Type {
+	case Postgres:
+		return db.PostgresLoad(table, searchOnFields)
+	}
+
+	return QueryResult{}, nil //TODO: provide a useful error here
+
+}
+
+/*-----------------------*/
