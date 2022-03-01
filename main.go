@@ -46,6 +46,13 @@ func main() {
 
 	fmt.Printf("\nDone")
 
+	insertQueue := database.NewInsertQueue(db)
+	if err := insertQueue.Start(); err != nil {
+		fmt.Printf("error in starting insert queue: %v\n", err)
+		return
+	}
+	defer insertQueue.Stop()
+
 	/*-------------*/
 
 	SetBech32Prefixes()
@@ -98,8 +105,8 @@ func main() {
 
 	fmt.Println("\nListening...")
 	// Running the listeners
-	tx.Start(cli, grpcCnn, db)
-	block.Start(cli, grpcCnn, db)
+	tx.Start(cli, grpcCnn, db, insertQueue)
+	block.Start(cli, grpcCnn, db, insertQueue)
 
 	/*------------------*/
 

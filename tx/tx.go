@@ -16,14 +16,14 @@ import (
 	"google.golang.org/grpc"
 )
 
-func ProcessEvents(db *database.Database, grpcCnn *grpc.ClientConn, evr coretypes.ResultEvent) error {
+func ProcessEvents(grpcCnn *grpc.ClientConn, evr coretypes.ResultEvent, db *database.Database, insertQueue *database.InsertQueue) error {
 
 	rec := getTxRecordFromEvent(evr)
 	rec.LogTime = time.Now()
 
 	dbRow := rec.getDBRow()
 	delete(dbRow, database.FIELD_TX_EVENTS_TX_MEMO) //TODO: let's keep it NULL in order to be used in future development if needed
-	db.InsertAsync(database.TABLE_TX_EVENTS, dbRow)
+	insertQueue.AddToInsertQueue(database.TABLE_TX_EVENTS, dbRow)
 	// _, err := db.Insert(database.TABLE_TX_EVENTS, dbRow)
 	// if err != nil {
 	// 	return err
@@ -147,7 +147,7 @@ func (t TxRecord) getDBRow() database.RowType {
 	}
 }
 
-func Start(cli *tmClient.HTTP, grpcCnn *grpc.ClientConn, db *database.Database) {
+func Start(cli *tmClient.HTTP, grpcCnn *grpc.ClientConn, db *database.Database, insertQueue *database.InsertQueue) {
 
 	go func() {
 
@@ -161,7 +161,7 @@ func Start(cli *tmClient.HTTP, grpcCnn *grpc.ClientConn, db *database.Database) 
 
 		for {
 			evRes := <-eventChan
-			err := ProcessEvents(db, grpcCnn, evRes)
+			err := ProcessEvents(grpcCnn, evRes, db, insertQueue)
 			if err != nil {
 				log.Printf("Error in processing TX event: %v", err)
 			}
