@@ -149,6 +149,7 @@ func CreateTables(db *database.Database) error {
 			"githubHandle" character varying(255) COLLATE pg_catalog."default",
 			"emailAddress" character varying(255) COLLATE pg_catalog."default" NOT NULL,
 			pubkey character varying(255) COLLATE pg_catalog."default",
+			"kycSessionId" character varying(255) COLLATE pg_catalog."default",
 			CONSTRAINT participants_pkey PRIMARY KEY ("accountAddress")
 		)
 		
