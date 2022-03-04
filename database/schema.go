@@ -62,6 +62,7 @@ const (
 	FIELD_PARTICIPANTS_EMAIL_ADDRESS   = "emailAddress"
 	FIELD_PARTICIPANTS_PUBKEY          = "pubkey"
 	FIELD_PARTICIPANTS_KYC_SESSION_ID  = "kycSessionId"
+	FIELD_PARTICIPANTS_KYC_VERIFIED    = "kycVerified"
 )
 
 /*-------------------*/

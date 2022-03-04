@@ -150,6 +150,7 @@ func CreateTables(db *database.Database) error {
 			"emailAddress" character varying(255) COLLATE pg_catalog."default" NOT NULL,
 			pubkey character varying(255) COLLATE pg_catalog."default",
 			"kycSessionId" character varying(255) COLLATE pg_catalog."default",
+			"kycVerified" boolean DEFAULT false,
 			CONSTRAINT participants_pkey PRIMARY KEY ("accountAddress")
 		)
 		
@@ -158,6 +159,11 @@ func CreateTables(db *database.Database) error {
 		`CREATE INDEX IF NOT EXISTS "emailAddress"
 		ON public.participants USING btree
 		("emailAddress" COLLATE pg_catalog."default" ASC NULLS LAST)
+		TABLESPACE pg_default;`,
+
+		`CREATE INDEX IF NOT EXISTS "kycVerified"
+		ON public.participants USING btree
+		("kycVerified" ASC NULLS LAST)
 		TABLESPACE pg_default;`,
 	}
 
