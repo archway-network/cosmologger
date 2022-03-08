@@ -29,8 +29,8 @@ func ProcessEvents(grpcCnn *grpc.ClientConn, evr *coretypes.ResultEvent, db *dat
 	dbRows := make([]database.RowType, len(rec.LastBlockSigners))
 	for i := range rec.LastBlockSigners {
 		dbRows[i] = rec.LastBlockSigners[i].getBlockSignerDBRow()
-		insertQueue.AddToInsertQueue(database.TABLE_BLOCK_SIGNERS, dbRows...)
 	}
+	insertQueue.AddToInsertQueue(database.TABLE_BLOCK_SIGNERS, dbRows...)
 
 	// Let's add genesis validator's info
 	if !genesisValidatorsDone && rec.Height > 20 {
