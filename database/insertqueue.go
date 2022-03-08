@@ -45,13 +45,13 @@ func (i *InsertQueue) Start() error {
 				}
 				if len(item.Rows) == 0 {
 					continue
-				} else if len(item.Rows) > 1 {
-					_, err := i.db.BatchInsert(item.Table, item.Rows...)
+				} else if len(item.Rows) == 1 {
+					_, err := i.db.Insert(item.Table, item.Rows[0])
 					if err != nil {
 						log.Printf("Error in Async Insert: %v\n", err)
 					}
 				} else {
-					_, err := i.db.Insert(item.Table, item.Rows[0])
+					_, err := i.db.BatchInsert(item.Table, item.Rows...)
 					if err != nil {
 						log.Printf("Error in Async Insert: %v\n", err)
 					}
