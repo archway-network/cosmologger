@@ -27,6 +27,6 @@ type QueryParams []interface{}
 
 type InsertQueueItem struct {
 	Table string
-	Row   RowType
+	Rows  []RowType
 	DB    *Database
 }

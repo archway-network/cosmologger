@@ -22,10 +22,10 @@ func NewInsertQueue(db *Database) *InsertQueue {
 	}
 }
 
-func (i *InsertQueue) AddToInsertQueue(table string, row RowType) {
+func (i *InsertQueue) AddToInsertQueue(table string, row ...RowType) {
 	i.insert <- InsertQueueItem{
 		Table: table,
-		Row:   row,
+		Rows:  row,
 		DB:    i.db,
 	}
 }
@@ -43,9 +43,18 @@ func (i *InsertQueue) Start() error {
 					log.Printf("Insert queue channel was closed, breaking out")
 					break Exit
 				}
-				_, err := i.db.Insert(item.Table, item.Row)
-				if err != nil {
-					log.Printf("Error in Async Insert: %v\n", err)
+				if len(item.Rows) == 0 {
+					continue
+				} else if len(item.Rows) > 1 {
+					_, err := i.db.BatchInsert(item.Table, item.Rows...)
+					if err != nil {
+						log.Printf("Error in Async Insert: %v\n", err)
+					}
+				} else {
+					_, err := i.db.Insert(item.Table, item.Rows[0])
+					if err != nil {
+						log.Printf("Error in Async Insert: %v\n", err)
+					}
 				}
 			}
 		}

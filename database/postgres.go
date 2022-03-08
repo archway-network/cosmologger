@@ -29,25 +29,62 @@ func (db *Database) PostgresClose() {
 
 /*-----------------*/
 
-func (db *Database) PostgresInsert(table string, fields RowType) (ExecResult, error) {
+func (db *Database) PostgresBatchInsert(table string, fieldNames []string, bulkFields [][]interface{}) (ExecResult, error) {
+	var result ExecResult
 
-	SQL := fmt.Sprintf(`INSERT INTO "%s" (`, table)
-
-	var params QueryParams
-	values := ""
-	paramCounter := 1
-	for fieldName, value := range fields {
-		SQL += fmt.Sprintf(`"%s",`, fieldName)
-		values += fmt.Sprintf(`$%d,`, paramCounter)
-		paramCounter++
-		params = append(params, value)
+	builder := strings.Builder{}
+	if _, err := builder.WriteString(fmt.Sprintf(`INSERT INTO "%s" (`, table)); err != nil {
+		return result, err
 	}
 
-	SQL = strings.Trim(SQL, ",")
-	values = strings.Trim(values, ",")
-	SQL += ") VALUES ( " + values + ")"
+	for i, fieldName := range fieldNames {
+		_, err := builder.WriteString(fmt.Sprintf(`"%s"`, fieldName))
+		if err != nil {
+			return result, err
+		}
 
-	return db.PostgresExec(SQL, params)
+		if i != len(fieldNames)-1 {
+			_, err := builder.WriteString(",")
+			if err != nil {
+				return result, err
+			}
+		}
+	}
+
+	if _, err := builder.WriteString(") VALUES "); err != nil {
+		return result, err
+	}
+
+	counter := 1
+	params := make([]interface{}, len(fieldNames)*len(bulkFields))
+	for bulkIndex, fields := range bulkFields {
+		fieldInsertToken := "("
+
+		if len(fields) != len(fieldNames) {
+			return result, fmt.Errorf("number of fields does not match field names")
+		}
+
+		for fieldIndex, field := range fields {
+			fieldInsertToken += fmt.Sprintf("$%d", counter)
+			params[counter-1] = field
+			counter++
+
+			if fieldIndex != len(fields)-1 {
+				fieldInsertToken += ","
+			}
+		}
+		fieldInsertToken += ")"
+
+		if bulkIndex != len(bulkFields)-1 {
+			fieldInsertToken += ","
+		}
+
+		if _, err := builder.WriteString(fieldInsertToken); err != nil {
+			return result, err
+		}
+	}
+
+	return db.PostgresExec(builder.String(), params)
 }
 
 /*-----------------*/
@@ -100,8 +137,7 @@ func (db *Database) PostgresDelete(table string, conditions RowType) (ExecResult
 
 /*-----------------*/
 
-func (db *Database) PostgresExec(query string, params QueryParams) (ExecResult, error) {
-
+func (db *Database) PostgresExec(query string, params ...interface{}) (ExecResult, error) {
 	res, err := db.SQLConn.Exec(query, params...)
 	if err != nil {
 		return ExecResult{}, fmt.Errorf("DB Err: %v", err)

@@ -30,13 +30,52 @@ func (db *Database) Close() {
 
 /*-----------------------*/
 
-func (db *Database) Insert(table string, fields RowType, tags ...map[string]string) (ExecResult, error) {
-
+func (db *Database) BatchInsert(table string, bulkFields ...RowType) (ExecResult, error) {
 	switch db.Type {
 	case Postgres:
-		return db.PostgresInsert(table, fields)
-	}
+		if len(bulkFields) == 0 {
+			return ExecResult{}, nil
+		}
 
+		fieldNames := make([]string, len(bulkFields[0]))
+		values := make([][]interface{}, len(bulkFields))
+
+		i := 0
+		for fieldName, _ := range bulkFields[0] {
+			fieldNames[i] = fieldName
+			i++
+		}
+
+		for i, fields := range bulkFields {
+			values[i] = make([]interface{}, len(bulkFields[0]))
+			for j, fieldName := range fieldNames {
+				values[i][j] = fields[fieldName]
+			}
+		}
+
+		return db.PostgresBatchInsert(table, fieldNames, values)
+	}
+	return ExecResult{}, nil //TODO: provide a useful error here
+}
+
+func (db *Database) Insert(table string, fields RowType) (ExecResult, error) {
+	switch db.Type {
+	case Postgres:
+		fieldNames := make([]string, len(fields))
+		values := make([]interface{}, len(fields))
+
+		i := 0
+		for fieldName, value := range fields {
+			fieldNames[i] = fieldName
+			values[i] = value
+			i++
+		}
+
+		batchValues := make([][]interface{}, 1)
+		batchValues[0] = values
+
+		return db.PostgresBatchInsert(table, fieldNames, batchValues)
+	}
 	return ExecResult{}, nil //TODO: provide a useful error here
 }
 
