@@ -16,3 +16,9 @@ type BlockRecord struct {
 	Time             time.Time
 	LastBlockSigners []BlockSignersRecord
 }
+
+type ContractRecord struct {
+	ContractAddress string
+	BlockHeight     uint64
+	//TODO: bia
+}

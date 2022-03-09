@@ -16,6 +16,7 @@ import (
 	"github.com/archway-network/cosmologger/database"
 	"github.com/archway-network/cosmologger/dbinit"
 	"github.com/archway-network/cosmologger/tx"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
