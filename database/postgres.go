@@ -29,6 +29,29 @@ func (db *Database) PostgresClose() {
 
 /*-----------------*/
 
+func (db *Database) PostgresInsert(table string, fields RowType) (ExecResult, error) {
+
+	SQL := fmt.Sprintf(`INSERT INTO "%s" (`, table)
+
+	var params QueryParams
+	values := ""
+	paramCounter := 1
+	for fieldName, value := range fields {
+		SQL += fmt.Sprintf(`"%s",`, fieldName)
+		values += fmt.Sprintf(`$%d,`, paramCounter)
+		paramCounter++
+		params = append(params, value)
+	}
+
+	SQL = strings.Trim(SQL, ",")
+	values = strings.Trim(values, ",")
+	SQL += ") VALUES ( " + values + ")"
+
+	return db.PostgresExec(SQL, params)
+}
+
+/*-----------------*/
+
 func (db *Database) PostgresBatchInsert(table string, fieldNames []string, bulkFields [][]interface{}) (ExecResult, error) {
 	var result ExecResult
 
@@ -56,7 +79,7 @@ func (db *Database) PostgresBatchInsert(table string, fieldNames []string, bulkF
 	}
 
 	counter := 1
-	params := make([]interface{}, len(fieldNames)*len(bulkFields))
+	params := make(QueryParams, len(fieldNames)*len(bulkFields))
 	for bulkIndex, fields := range bulkFields {
 		fieldInsertToken := "("
 
@@ -84,7 +107,7 @@ func (db *Database) PostgresBatchInsert(table string, fieldNames []string, bulkF
 		}
 	}
 
-	return db.PostgresExec(builder.String(), params)
+	return db.PostgresExec(builder.String(), params...)
 }
 
 /*-----------------*/
@@ -140,7 +163,7 @@ func (db *Database) PostgresDelete(table string, conditions RowType) (ExecResult
 func (db *Database) PostgresExec(query string, params ...interface{}) (ExecResult, error) {
 	res, err := db.SQLConn.Exec(query, params...)
 	if err != nil {
-		return ExecResult{}, fmt.Errorf("DB Err: %v", err)
+		return ExecResult{}, fmt.Errorf("DB Err: %v\nSQL: %s\nParams: %#v", err, query, params)
 	}
 
 	var output ExecResult

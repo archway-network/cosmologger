@@ -1,5 +1,7 @@
 package database
 
+import "fmt"
+
 /*-----------------------*/
 
 func New(DatabaseType DBType, params ...string) *Database {
@@ -55,7 +57,7 @@ func (db *Database) BatchInsert(table string, bulkFields ...RowType) (ExecResult
 
 		return db.PostgresBatchInsert(table, fieldNames, values)
 	}
-	return ExecResult{}, nil //TODO: provide a useful error here
+	return ExecResult{}, fmt.Errorf("no db.Type is set")
 }
 
 func (db *Database) Insert(table string, fields RowType) (ExecResult, error) {
@@ -76,7 +78,7 @@ func (db *Database) Insert(table string, fields RowType) (ExecResult, error) {
 
 		return db.PostgresBatchInsert(table, fieldNames, batchValues)
 	}
-	return ExecResult{}, nil //TODO: provide a useful error here
+	return ExecResult{}, fmt.Errorf("no db.Type is set")
 }
 
 /*-----------------------*/
@@ -88,7 +90,7 @@ func (db *Database) Update(table string, fields RowType, conditions RowType) (Ex
 		return db.PostgresUpdate(table, fields, conditions)
 	}
 
-	return ExecResult{}, nil //TODO: provide a useful error here
+	return ExecResult{}, fmt.Errorf("no db.Type is set")
 }
 
 /*-----------------------*/
@@ -100,7 +102,7 @@ func (db *Database) Delete(table string, conditions RowType) (ExecResult, error)
 		return db.PostgresDelete(table, conditions)
 	}
 
-	return ExecResult{}, nil //TODO: provide a useful error here
+	return ExecResult{}, fmt.Errorf("no db.Type is set")
 }
 
 /*-----------------------*/
@@ -112,7 +114,7 @@ func (db *Database) Load(table string, searchOnFields RowType) (QueryResult, err
 		return db.PostgresLoad(table, searchOnFields)
 	}
 
-	return QueryResult{}, nil //TODO: provide a useful error here
+	return QueryResult{}, fmt.Errorf("no db.Type is set")
 
 }
 
@@ -125,7 +127,7 @@ func (db *Database) Query(query string, params QueryParams) (QueryResult, error)
 		return db.PostgresQuery(query, params)
 	}
 
-	return QueryResult{}, nil //TODO: provide a useful error here
+	return QueryResult{}, fmt.Errorf("no db.Type is set")
 
 }
 
@@ -138,6 +140,6 @@ func (db *Database) Exec(query string, params QueryParams) (ExecResult, error) {
 		return db.PostgresExec(query, params)
 	}
 
-	return ExecResult{}, nil //TODO: provide a useful error here
+	return ExecResult{}, fmt.Errorf("no db.Type is set")
 
 }
