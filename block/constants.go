@@ -1,14 +1,11 @@
-package tx
+package block
 
 const (
-	MODULE_BANK         = "bank"
-	MODULE_STAKING      = "staking"
-	MODULE_DISTRIBUTION = "distribution"
-	MODULE_GOVERNANCE   = "governance"
-	MODULE_SLASHING     = "slashing"
-	MODULE_WASM         = "wasm"
-	MODULE_GAS_TRACKER  = "gastracker"
+	EVENTS_ContractRewardCalculationEvent = "archway.gastracker.v1.ContractRewardCalculationEvent"
+	EVENTS_RewardDistributionEvent        = "archway.gastracker.v1.RewardDistributionEvent"
+)
 
+const (
 	ACTION_CREATE_VALIDATOR          = "/cosmos.staking.v1beta1.MsgCreateValidator"              // "create_validator"
 	ACTION_SEND                      = "/cosmos.bank.v1beta1.MsgSend"                            // "send"
 	ACTION_DELEGATE                  = "/cosmos.staking.v1beta1.MsgDelegate"                     // "delegate"
@@ -18,9 +15,4 @@ const (
 	ACTION_SUBMIT_PROPOSAL           = "/cosmos.gov.v1beta1.MsgSubmitProposal"                   // "submit_proposal"
 	ACTION_VOTE                      = "/cosmos.gov.v1beta1.MsgVote"                             // "vote"
 	ACTION_UNJAIL                    = "/cosmos.slashing.v1beta1.MsgUnjail"                      // "unjail"
-
-	ACTION_STORE_CODE            = "/cosmwasm.wasm.v1.MsgStoreCode"
-	ACTION_INSTANTIATE_CONTRACT  = "/cosmwasm.wasm.v1.MsgInstantiateContract"
-	ACTION_SET_CONTRACT_METADATA = "/archway.gastracker.v1.MsgSetContractMetadata"
-	ACTION_EXECUTE_CONTRACT      = "/cosmwasm.wasm.v1.MsgExecuteContract"
 )
