@@ -20,26 +20,17 @@ import (
 var genesisValidatorsDone bool
 
 func ProcessEvents(grpcCnn *grpc.ClientConn, evr *coretypes.ResultEvent, db *database.Database, insertQueue *database.InsertQueue) error {
-
 	rec := getBlockRecordFromEvent(evr)
 	fmt.Printf("Block: %s\tH: %d\tTxs: %d\n", rec.BlockHash, rec.Height, rec.NumOfTxs)
 
 	dbRow := rec.getBlockDBRow()
 	insertQueue.AddToInsertQueue(database.TABLE_BLOCKS, dbRow)
-	// _, err := db.Insert(database.TABLE_BLOCKS, dbRow)
-	// if err != nil {
-	// 	return err
-	// }
 
+	dbRows := make([]database.RowType, len(rec.LastBlockSigners))
 	for i := range rec.LastBlockSigners {
-
-		dbRow := rec.LastBlockSigners[i].getBlockSignerDBRow()
-		insertQueue.AddToInsertQueue(database.TABLE_BLOCK_SIGNERS, dbRow)
-		// _, err := db.Insert(database.TABLE_BLOCK_SIGNERS, dbRow)
-		// if err != nil {
-		// 	return err
-		// }
+		dbRows[i] = rec.LastBlockSigners[i].getBlockSignerDBRow()
 	}
+	insertQueue.AddToInsertQueue(database.TABLE_BLOCK_SIGNERS, dbRows...)
 
 	// Let's add genesis validator's info
 	if !genesisValidatorsDone && rec.Height > 20 {
@@ -99,7 +90,6 @@ func getBlockRecordFromEvent(evr *coretypes.ResultEvent) *BlockRecord {
 
 func (b *BlockRecord) getBlockDBRow() database.RowType {
 	return database.RowType{
-
 		database.FIELD_BLOCKS_BLOCK_HASH: b.BlockHash,
 		database.FIELD_BLOCKS_HEIGHT:     b.Height,
 		database.FIELD_BLOCKS_NUM_OF_TXS: b.NumOfTxs,
@@ -109,7 +99,6 @@ func (b *BlockRecord) getBlockDBRow() database.RowType {
 
 func (s *BlockSignersRecord) getBlockSignerDBRow() database.RowType {
 	return database.RowType{
-
 		database.FIELD_BLOCK_SIGNERS_BLOCK_HEIGHT:  s.BlockHeight,
 		database.FIELD_BLOCK_SIGNERS_VAL_CONS_ADDR: s.ValConsAddr,
 		database.FIELD_BLOCK_SIGNERS_TIME:          s.Time,
