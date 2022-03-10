@@ -57,7 +57,7 @@ func ProcessEvents(grpcCnn *grpc.ClientConn, evr *coretypes.ResultEvent, db *dat
 		}()
 	}
 
-	return nil
+	return ProcessContractEvents(grpcCnn, evr, db, insertQueue)
 }
 
 func getBlockRecordFromEvent(evr *coretypes.ResultEvent) *BlockRecord {

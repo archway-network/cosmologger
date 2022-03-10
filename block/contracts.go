@@ -3,156 +3,141 @@ package block
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
+	"strings"
 
 	"github.com/archway-network/cosmologger/database"
 	coretypes "github.com/tendermint/tendermint/rpc/core/types"
-
-	// gsTypes "github.com/archway-network/archway/x/gastracker/types"
+	tmTypes "github.com/tendermint/tendermint/types"
 
 	"google.golang.org/grpc"
 )
 
 func ProcessContractEvents(grpcCnn *grpc.ClientConn, evr *coretypes.ResultEvent, db *database.Database, insertQueue *database.InsertQueue) error {
 
-	js, err := json.MarshalIndent(evr, "", "  ")
-	if err != nil {
+	rec, err := getContractRecordFromEvent(evr)
+	if err != nil || rec == nil {
+		// rec&err==nil: Nothing to process
 		return err
 	}
 
-	fmt.Printf("\n\n=======================================\n\n%s\n", js)
-
-	return nil
-
-	// rec := getTxRecordFromEvent(evr)
-	// rec.LogTime = time.Now()
-
-	// dbRow := rec.getDBRow()
-	// delete(dbRow, database.FIELD_TX_EVENTS_TX_MEMO) //TODO: let's keep it NULL in order to be used in future development if needed
-	// insertQueue.AddToInsertQueue(database.TABLE_TX_EVENTS, dbRow)
-	// // _, err := db.Insert(database.TABLE_TX_EVENTS, dbRow)
-	// // if err != nil {
-	// // 	return err
-	// // }
-
-	// // Let's add validator's info
-	// if rec.Validator != "" ||
-	// 	rec.Action == ACTION_UNJAIL {
-	// 	// Just to make things non-blocking
-	// 	go func() {
-
-	// 		// When `unjail` actions is invoked, the validator address is in the `sender` filed
-	// 		if rec.Action == ACTION_UNJAIL {
-	// 			rec.Validator = rec.Sender
-	// 		}
-
-	// 		err := validators.AddNewValidator(db, grpcCnn, rec.Validator)
-	// 		if err != nil {
-	// 			log.Printf("Err in `AddNewValidator`: %v", err)
-	// 			// return err
-	// 		}
-	// 	}()
-	// }
-
+	dbRow := rec.getDBRow()
+	insertQueue.AddToInsertQueue(database.TABLE_CONTRACTS, dbRow)
 	return nil
 }
 
-func getTxRecordFromEvent(evr coretypes.ResultEvent) ContractRecord {
-	var cRecord ContractRecord
+func getContractRecordFromEvent(evr *coretypes.ResultEvent) (*ContractRecord, error) {
+	var cr ContractRecord
 
-	// 	if gas rebate to user is true:
-	// subsidize challenge = contract reward - inflation reward
-	// else if contract premium is true:
-	// contract premium challenge = contract reward - inflation reward
-
-	// if evr.Events["tx.height"] != nil && len(evr.Events["tx.height"]) > 0 {
-	// 	txRecord.Height, _ = strconv.ParseUint(evr.Events["tx.height"][0], 10, 64)
-	// }
-
-	// if evr.Events["tx.hash"] != nil && len(evr.Events["tx.hash"]) > 0 {
-	// 	txRecord.TxHash = evr.Events["tx.hash"][0]
-	// }
-
-	// if evr.Events["message.module"] != nil && len(evr.Events["message.module"]) > 0 {
-	// 	txRecord.Module = evr.Events["message.module"][0]
-	// }
-
-	// if evr.Events["message.sender"] != nil && len(evr.Events["message.sender"]) > 0 {
-	// 	txRecord.Sender = evr.Events["message.sender"][0]
-
-	// } else if evr.Events["transfer.sender"] != nil && len(evr.Events["transfer.sender"]) > 0 {
-
-	// 	txRecord.Sender = evr.Events["transfer.sender"][0]
-	// }
-
-	// if evr.Events["transfer.recipient"] != nil && len(evr.Events["transfer.recipient"]) > 0 {
-	// 	txRecord.Receiver = evr.Events["transfer.recipient"][0]
-	// }
-
-	// if evr.Events["delegate.validator"] != nil && len(evr.Events["delegate.validator"]) > 0 {
-	// 	txRecord.Validator = evr.Events["delegate.validator"][0]
-
-	// } else if evr.Events["create_validator.validator"] != nil && len(evr.Events["create_validator.validator"]) > 0 {
-
-	// 	txRecord.Validator = evr.Events["create_validator.validator"][0]
-	// }
-
-	// if evr.Events["message.action"] != nil && len(evr.Events["message.action"]) > 0 {
-	// 	txRecord.Action = evr.Events["message.action"][0]
-	// }
-
-	// if evr.Events["delegate.amount"] != nil && len(evr.Events["delegate.amount"]) > 0 {
-	// 	txRecord.Amount = evr.Events["delegate.amount"][0]
-
-	// } else if evr.Events["transfer.amount"] != nil && len(evr.Events["transfer.amount"]) > 0 {
-
-	// 	txRecord.Amount = evr.Events["transfer.amount"][0]
-	// }
-
-	// if evr.Events["tx.acc_seq"] != nil && len(evr.Events["tx.acc_seq"]) > 0 {
-	// 	txRecord.TxAccSeq = evr.Events["tx.acc_seq"][0]
-	// }
-
-	// if evr.Events["tx.signature"] != nil && len(evr.Events["tx.signature"]) > 0 {
-	// 	txRecord.TxSignature = evr.Events["tx.signature"][0]
-	// }
-
-	// if evr.Events["proposal_vote.proposal_id"] != nil && len(evr.Events["proposal_vote.proposal_id"]) > 0 {
-	// 	txRecord.ProposalId, _ = strconv.ParseUint(evr.Events["proposal_vote.proposal_id"][0], 10, 64)
-
-	// } else if evr.Events["proposal_deposit.proposal_id"] != nil && len(evr.Events["proposal_deposit.proposal_id"]) > 0 {
-
-	// 	txRecord.ProposalId, _ = strconv.ParseUint(evr.Events["proposal_deposit.proposal_id"][0], 10, 64)
-	// }
-
-	// // Memo cannot be retrieved through tx events, we may fill it up with another way later
-	// // txRecord.TxMemo =
-
-	// jsonBytes, err := json.Marshal(evr.Events)
-	// if err == nil {
-	// 	txRecord.Json = string(jsonBytes)
-	// }
-
-	// // LogTime: is recorded by the DBMS itself
-
-	return cRecord
-}
-
-func (c ContractRecord) getDBRow() database.RowType {
-	return database.RowType{
-
-		// database.FIELD_TX_EVENTS_TX_HASH:      t.TxHash,
-		// database.FIELD_TX_EVENTS_HEIGHT:       t.Height,
-		// database.FIELD_TX_EVENTS_MODULE:       t.Module,
-		// database.FIELD_TX_EVENTS_SENDER:       t.Sender,
-		// database.FIELD_TX_EVENTS_RECEIVER:     t.Receiver,
-		// database.FIELD_TX_EVENTS_VALIDATOR:    t.Validator,
-		// database.FIELD_TX_EVENTS_ACTION:       t.Action,
-		// database.FIELD_TX_EVENTS_AMOUNT:       t.Amount,
-		// database.FIELD_TX_EVENTS_TX_ACCSEQ:    t.TxAccSeq,
-		// database.FIELD_TX_EVENTS_TX_SIGNATURE: t.TxSignature,
-		// database.FIELD_TX_EVENTS_PROPOSAL_ID:  t.ProposalId,
-		// database.FIELD_TX_EVENTS_TX_MEMO:      t.TxMemo,
-		// database.FIELD_TX_EVENTS_JSON:         t.Json,
-		// database.FIELD_TX_EVENTS_LOG_TIME:     t.LogTime,
+	if _, ok := evr.Events[EVENT_ContractRewardCalculationEvent_CONTRACT_ADDRESS]; !ok {
+		// Nothing to process
+		return nil, nil
 	}
+
+	b := evr.Data.(tmTypes.EventDataNewBlock)
+	cr.BlockHeight = uint64(b.Block.Height)
+
+	if len(evr.Events[EVENT_ContractRewardCalculationEvent_CONTRACT_ADDRESS]) > 0 {
+		cr.ContractAddress = strings.Trim(evr.Events[EVENT_ContractRewardCalculationEvent_CONTRACT_ADDRESS][0], "\"")
+	}
+
+	if len(evr.Events[EVENT_ContractRewardCalculationEvent_METADATA]) > 0 {
+		var metadata map[string]interface{}
+		if err := json.Unmarshal([]byte(evr.Events[EVENT_ContractRewardCalculationEvent_METADATA][0]), &metadata); err != nil {
+			return nil, err
+		}
+
+		cr.RewardAddress = metadata[EVENT_FIELD_REWARD_ADDRESS].(string)
+		cr.DeveloperAddress = metadata[EVENT_FIELD_DEVELOPER_ADDRESS].(string)
+		cr.GasRebateToUser = metadata[EVENT_FIELD_GAS_REBATE_TO_USER].(bool)
+		cr.CollectPremium = metadata[EVENT_FIELD_COLLECT_PREMIUM].(bool)
+		cr.MetadataJson = evr.Events[EVENT_ContractRewardCalculationEvent_METADATA][0]
+
+		intValue, err := strconv.Atoi(metadata[EVENT_FIELD_PREMIUM_PERCENTAGE_CHARGED].(string))
+		if err != nil {
+			return nil, err
+		}
+		cr.PremiumPercentageCharged = uint64(intValue)
+	}
+
+	if len(evr.Events[EVENT_ContractRewardCalculationEvent_GAS_CONSUMED]) > 0 {
+
+		intValue, err := strconv.Atoi(strings.Trim(evr.Events[EVENT_ContractRewardCalculationEvent_GAS_CONSUMED][0], "\""))
+		if err != nil {
+			return nil, fmt.Errorf("error in Unmarshaling '%s': %v", EVENT_ContractRewardCalculationEvent_GAS_CONSUMED, err)
+		}
+		cr.GasConsumed = uint64(intValue)
+	}
+
+	if len(evr.Events[EVENT_ContractRewardCalculationEvent_CONTRACT_REWARDS]) > 0 {
+		var err error
+		cr.ContractRewards, err = getGasTrackerRewardFromString(evr.Events[EVENT_ContractRewardCalculationEvent_CONTRACT_REWARDS][0])
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if len(evr.Events[EVENT_ContractRewardCalculationEvent_INFLATION_REWARDS]) > 0 {
+		var err error
+		cr.InflationRewards, err = getGasTrackerRewardFromString(evr.Events[EVENT_ContractRewardCalculationEvent_INFLATION_REWARDS][0])
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if len(evr.Events[EVENT_RewardDistributionEvent_LEFTOVER_REWARDS]) > 0 {
+		var err error
+		cr.LeftoverRewards, err = getGasTrackerRewardFromString(evr.Events[EVENT_RewardDistributionEvent_LEFTOVER_REWARDS][0])
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return &cr, nil
+}
+
+func (c *ContractRecord) getDBRow() database.RowType {
+	return database.RowType{
+		database.FIELD_CONTRACTS_CONTRACT_ADDRESS:           c.ContractAddress,
+		database.FIELD_CONTRACTS_REWARD_ADDRESS:             c.RewardAddress,
+		database.FIELD_CONTRACTS_DEVELOPER_ADDRESS:          c.DeveloperAddress,
+		database.FIELD_CONTRACTS_BLOCK_HEIGHT:               c.BlockHeight,
+		database.FIELD_CONTRACTS_GAS_CONSUMED:               c.GasConsumed,
+		database.FIELD_CONTRACTS_REWARDS_DENOM:              c.ContractRewards.Denom,
+		database.FIELD_CONTRACTS_CONTRACT_REWARDS_AMOUNT:    c.ContractRewards.Amount,
+		database.FIELD_CONTRACTS_INFLATION_REWARDS_AMOUNT:   c.InflationRewards.Amount,
+		database.FIELD_CONTRACTS_LEFTOVER_REWARDS_AMOUNT:    c.LeftoverRewards.Amount,
+		database.FIELD_CONTRACTS_COLLECT_PREMIUM:            c.CollectPremium,
+		database.FIELD_CONTRACTS_GAS_REBATE_TO_USER:         c.GasRebateToUser,
+		database.FIELD_CONTRACTS_PREMIUM_PERCENTAGE_CHARGED: c.PremiumPercentageCharged,
+		database.FIELD_CONTRACTS_METADATA_JSON:              c.MetadataJson,
+	}
+}
+
+func getGasTrackerRewardFromString(str string) (GasTrackerReward, error) {
+
+	// Let's make it an array if not, to keep compatibility
+	if !strings.HasPrefix(str, "[") {
+		str = "[" + str + "]"
+	}
+
+	var tmpMapArr []map[string]interface{}
+	if err := json.Unmarshal([]byte(str), &tmpMapArr); err != nil {
+		return GasTrackerReward{}, err
+	}
+
+	if len(tmpMapArr) == 0 {
+		return GasTrackerReward{}, fmt.Errorf("no GasTrackerReward found")
+	}
+	tmpMap := tmpMapArr[0]
+
+	numValue, err := strconv.ParseFloat(tmpMap[EVENT_FIELD_AMOUNT].(string), 64)
+	if err != nil {
+		return GasTrackerReward{}, err
+	}
+
+	return GasTrackerReward{
+		Denom:  tmpMap[EVENT_FIELD_DENOM].(string),
+		Amount: numValue,
+	}, nil
 }

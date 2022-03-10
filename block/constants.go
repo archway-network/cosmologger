@@ -1,18 +1,23 @@
 package block
 
 const (
-	EVENTS_ContractRewardCalculationEvent = "archway.gastracker.v1.ContractRewardCalculationEvent"
-	EVENTS_RewardDistributionEvent        = "archway.gastracker.v1.RewardDistributionEvent"
-)
+	EVENT_ContractRewardCalculationEvent = "archway.gastracker.v1.ContractRewardCalculationEvent"
+	EVENT_RewardDistributionEvent        = "archway.gastracker.v1.RewardDistributionEvent"
 
-const (
-	ACTION_CREATE_VALIDATOR          = "/cosmos.staking.v1beta1.MsgCreateValidator"              // "create_validator"
-	ACTION_SEND                      = "/cosmos.bank.v1beta1.MsgSend"                            // "send"
-	ACTION_DELEGATE                  = "/cosmos.staking.v1beta1.MsgDelegate"                     // "delegate"
-	ACTION_BEGIN_REDELEGATE          = "/cosmos.staking.v1beta1.MsgBeginRedelegate"              // "begin_redelegate"
-	ACTION_BEGIN_UNBONDING           = "/cosmos.staking.v1beta1.MsgUndelegate"                   // "begin_unbonding"
-	ACTION_WITHDRAW_DELEGATOR_REWARD = "/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward" // "withdraw_delegator_reward"
-	ACTION_SUBMIT_PROPOSAL           = "/cosmos.gov.v1beta1.MsgSubmitProposal"                   // "submit_proposal"
-	ACTION_VOTE                      = "/cosmos.gov.v1beta1.MsgVote"                             // "vote"
-	ACTION_UNJAIL                    = "/cosmos.slashing.v1beta1.MsgUnjail"                      // "unjail"
+	EVENT_ContractRewardCalculationEvent_CONTRACT_ADDRESS  = EVENT_ContractRewardCalculationEvent + ".contract_address"
+	EVENT_ContractRewardCalculationEvent_CONTRACT_REWARDS  = EVENT_ContractRewardCalculationEvent + ".contract_rewards"
+	EVENT_ContractRewardCalculationEvent_GAS_CONSUMED      = EVENT_ContractRewardCalculationEvent + ".gas_consumed"
+	EVENT_ContractRewardCalculationEvent_INFLATION_REWARDS = EVENT_ContractRewardCalculationEvent + ".inflation_rewards"
+	EVENT_ContractRewardCalculationEvent_METADATA          = EVENT_ContractRewardCalculationEvent + ".metadata"
+	EVENT_RewardDistributionEvent_CONTRACT_REWARDS         = EVENT_RewardDistributionEvent + ".contract_rewards"
+	EVENT_RewardDistributionEvent_LEFTOVER_REWARDS         = EVENT_RewardDistributionEvent + ".leftover_rewards"
+	EVENT_RewardDistributionEvent_REWARD_ADDRESS           = EVENT_RewardDistributionEvent + ".reward_address"
+
+	EVENT_FIELD_DENOM                      = "denom"
+	EVENT_FIELD_AMOUNT                     = "amount"
+	EVENT_FIELD_DEVELOPER_ADDRESS          = "developer_address"
+	EVENT_FIELD_REWARD_ADDRESS             = "reward_address"
+	EVENT_FIELD_GAS_REBATE_TO_USER         = "gas_rebate_to_user"
+	EVENT_FIELD_COLLECT_PREMIUM            = "collect_premium"
+	EVENT_FIELD_PREMIUM_PERCENTAGE_CHARGED = "premium_percentage_charged"
 )

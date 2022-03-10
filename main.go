@@ -27,6 +27,31 @@ import (
 /*--------------*/
 func main() {
 
+	// str := "{\"developer_address\":\"archway1p69nfnrn9ju8ghqn4pcv7zqk2tpcsdwnganvnn\",\"reward_address\":\"archway1p69nfnrn9ju8ghqn4pcv7zqk2tpcsdwnganvnn\",\"gas_rebate_to_user\":false,\"collect_premium\":true,\"premium_percentage_charged\":\"70\"}"
+	// str := "[{\"denom\":\"stake\",\"amount\":\"0.001988500000000000\"}]"
+	// var metadataX []map[string]interface{}
+	// if err := json.Unmarshal([]byte(str), &metadataX); err != nil {
+	// 	panic(err)
+	// }
+	// metadata := metadataX[0]
+
+	// fmt.Printf("metadata[\"developer_address\"]: %s\n", metadata["developer_address"])
+	// fmt.Printf("metadata[\"developer_address\"]: %s\n", metadata["Gooz"])
+
+	// for i := range metadata {
+
+	// 	fmt.Printf("\n%#v ==> %#v\n", i, metadata[i])
+	// }
+
+	// numValue, err := strconv.ParseFloat(metadata["amount"].(string), 64)
+	// if err != nil {
+	// 	fmt.Printf("\nError in Unmarshaling '%s': %v\n", "amount", err)
+	// }
+
+	// fmt.Printf("numValue: %#v\n", numValue)
+
+	// return
+
 	/*-------------*/
 
 	psqlconn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",

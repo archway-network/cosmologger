@@ -18,7 +18,24 @@ type BlockRecord struct {
 }
 
 type ContractRecord struct {
-	ContractAddress string
-	BlockHeight     uint64
-	//TODO: bia
+	ContractAddress  string
+	RewardAddress    string
+	DeveloperAddress string
+	BlockHeight      uint64
+
+	GasConsumed      uint64
+	ContractRewards  GasTrackerReward // For sake of simplicity, we consider only one denom per record
+	InflationRewards GasTrackerReward
+	LeftoverRewards  GasTrackerReward
+
+	CollectPremium           bool
+	GasRebateToUser          bool
+	PremiumPercentageCharged uint64
+
+	MetadataJson string
+}
+
+type GasTrackerReward struct {
+	Denom  string  `json:"denom"`
+	Amount float64 `json:"amount"`
 }

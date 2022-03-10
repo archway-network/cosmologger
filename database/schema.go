@@ -83,6 +83,7 @@ const (
 	FIELD_CONTRACTS_GAS_REBATE_TO_USER         = "gasRebateToUser"
 	FIELD_CONTRACTS_PREMIUM_PERCENTAGE_CHARGED = "premiumPercentageCharged"
 	FIELD_CONTRACTS_METADATA_JSON              = "metadataJson"
+	FIELD_CONTRACTS_INC_ID                     = "incId"
 )
 
 /*-------------------*/
