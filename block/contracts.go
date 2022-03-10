@@ -35,7 +35,7 @@ func getContractRecordFromEvent(evr *coretypes.ResultEvent) (*ContractRecord, er
 	}
 
 	b := evr.Data.(tmTypes.EventDataNewBlock)
-	cr.BlockHeight = uint64(b.Block.Height)
+	cr.BlockHeight = uint64(b.Block.Height) - 1 // The gastracking is processed in the next beginBlock
 
 	if len(evr.Events[EVENT_ContractRewardCalculationEvent_CONTRACT_ADDRESS]) > 0 {
 		cr.ContractAddress = strings.Trim(evr.Events[EVENT_ContractRewardCalculationEvent_CONTRACT_ADDRESS][0], "\"")
