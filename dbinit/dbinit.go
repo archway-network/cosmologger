@@ -165,6 +165,41 @@ func CreateTables(db *database.Database) error {
 		ON public.participants USING btree
 		("kycVerified" ASC NULLS LAST)
 		TABLESPACE pg_default;`,
+
+		`CREATE TABLE IF NOT EXISTS public.contracts
+		(
+			"contractAddress" character varying(255) COLLATE pg_catalog."default",
+			"rewardAddress" character varying(255) COLLATE pg_catalog."default",
+			"developerAddress" character varying(255) COLLATE pg_catalog."default",
+			"blockHeight" bigint,
+			"gasConsumed" bigint,
+			"rewardsDenom" character varying(255) COLLATE pg_catalog."default",
+			"contractRewardsAmount" double precision,
+			"inflationRewardsAmount" double precision,
+			"leftoverRewardsAmount" double precision,
+			"collectPremium" boolean,
+			"gasRebateToUser" boolean,
+			"premiumPercentageCharged" bigint,
+			"metadataJson" text COLLATE pg_catalog."default",
+			"incId" bigint NOT NULL DEFAULT nextval('"contracts_incId_seq"'::regclass),
+			CONSTRAINT contracts_pkey PRIMARY KEY ("incId")
+		)
+		TABLESPACE pg_default;`,
+
+		`CREATE INDEX IF NOT EXISTS "contractAddress"
+		ON public.contracts USING btree
+		("contractAddress" COLLATE pg_catalog."default" ASC NULLS LAST)
+		TABLESPACE pg_default;`,
+
+		`CREATE INDEX IF NOT EXISTS "developerAddress"
+		ON public.contracts USING btree
+		("developerAddress" COLLATE pg_catalog."default" ASC NULLS LAST)
+		TABLESPACE pg_default;`,
+
+		`CREATE INDEX IF NOT EXISTS "rewardAddress"
+		ON public.contracts USING btree
+		("rewardAddress" COLLATE pg_catalog."default" ASC NULLS LAST)
+		TABLESPACE pg_default;`,
 	}
 
 	for _, SQL := range SQList {
