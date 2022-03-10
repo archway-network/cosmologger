@@ -14,7 +14,6 @@ require (
 	github.com/99designs/keyring v1.1.6 // indirect
 	github.com/ChainSafe/go-schnorrkel v0.0.0-20200405005733-88cbf1b4c40d // indirect
 	github.com/DataDog/zstd v1.4.5 // indirect
-	github.com/archway-network/archway v0.0.0-20220306191355-8f340e031a78 // indirect
 	github.com/armon/go-metrics v0.3.10 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bgentry/speakeasy v0.1.0 // indirect
@@ -116,7 +115,7 @@ replace github.com/99designs/keyring => github.com/cosmos/keyring v1.1.7-0.20210
 replace github.com/gin-gonic/gin => github.com/gin-gonic/gin v1.7.0
 
 // TODO: We need to find a better way
-replace github.com/CosmWasm/wasmd => ./wasmd-fork
+// replace github.com/CosmWasm/wasmd => ./wasmd-fork
 
 // replace github.com/cosmos/cosmos-sdk/db => ./db
 // replace github.com/cosmos/cosmos-sdk/x/group => ./x/group
