@@ -66,3 +66,23 @@ const (
 )
 
 /*-------------------*/
+
+const TABLE_CONTRACTS = "contracts"
+
+const (
+	FIELD_CONTRACTS_CONTRACT_ADDRESS           = "contractAddress"
+	FIELD_CONTRACTS_REWARD_ADDRESS             = "rewardAddress"
+	FIELD_CONTRACTS_DEVELOPER_ADDRESS          = "developerAddress"
+	FIELD_CONTRACTS_BLOCK_HEIGHT               = "blockHeight"
+	FIELD_CONTRACTS_GAS_CONSUMED               = "gasConsumed"
+	FIELD_CONTRACTS_REWARDS_DENOM              = "rewardsDenom"
+	FIELD_CONTRACTS_CONTRACT_REWARDS_AMOUNT    = "contractRewardsAmount"
+	FIELD_CONTRACTS_INFLATION_REWARDS_AMOUNT   = "inflationRewardsAmount"
+	FIELD_CONTRACTS_LEFTOVER_REWARDS_AMOUNT    = "leftoverRewardsAmount"
+	FIELD_CONTRACTS_COLLECT_PREMIUM            = "collectPremium"
+	FIELD_CONTRACTS_GAS_REBATE_TO_USER         = "gasRebateToUser"
+	FIELD_CONTRACTS_PREMIUM_PERCENTAGE_CHARGED = "premiumPercentageCharged"
+	FIELD_CONTRACTS_METADATA_JSON              = "metadataJson"
+)
+
+/*-------------------*/
