@@ -18,12 +18,12 @@ RUN apk add --no-cache \
 #   mkdir -p ./my_keys && mkdir -p ./my_keys/.ssh
 #   cp ~/.ssh/id_rsa ./my_keys/.ssh && cp ~/.gitconfig ./my_keys
 COPY . /go/src/app/
-COPY main.go my_keys/.ssh/id_rsa* /root/.ssh/
-COPY main.go my_keys/.gitconfig* /root/
-RUN chmod 700 /root/* \
-    && echo -e "\nHost github.com\n\tStrictHostKeyChecking no\n" >> /root/.ssh/config \
-    && cd ~ \
-    && git config --global url.ssh://git@github.com/.insteadOf https://github.com/
+# COPY main.go my_keys/.ssh/id_rsa* /root/.ssh/
+# COPY main.go my_keys/.gitconfig* /root/
+# RUN chmod 700 /root/* \
+#     && echo -e "\nHost github.com\n\tStrictHostKeyChecking no\n" >> /root/.ssh/config \
+#     && cd ~ \
+#     && git config --global url.ssh://git@github.com/.insteadOf https://github.com/
 
 
 # Let's keep it in a separate layer
