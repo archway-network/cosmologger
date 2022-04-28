@@ -106,7 +106,6 @@ func AddNewValidator(db *database.Database, grpcCnn *grpc.ClientConn, valAddr st
 
 	dbRow := rec.getDBRow()
 	_, err = db.Insert(database.TABLE_VALIDATORS, dbRow)
-
 	return err
 }
 

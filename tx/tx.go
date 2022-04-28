@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/archway-network/cosmologger/configs"
@@ -35,15 +36,20 @@ func ProcessEvents(grpcCnn *grpc.ClientConn, evr coretypes.ResultEvent, db *data
 		// Just to make things non-blocking
 		go func() {
 
-			// When `unjail` actions is invoked, the validator address is in the `sender` filed
-			if rec.Action == ACTION_UNJAIL {
+			// When `unjail` actions is invoked, the validator address is in the `sender` filed (well mostly :D)
+			if rec.Action == ACTION_UNJAIL &&
+				strings.HasPrefix(rec.Sender, configs.Configs.Bech32Prefix.Validator.Address) {
+
 				rec.Validator = rec.Sender
 			}
 
-			err := validators.AddNewValidator(db, grpcCnn, rec.Validator)
-			if err != nil {
-				log.Printf("Err in `AddNewValidator`: %v", err)
-				// return err
+			if rec.Validator != "" {
+
+				err := validators.AddNewValidator(db, grpcCnn, rec.Validator)
+				if err != nil {
+					log.Printf("Err in `AddNewValidator`: %v", err)
+					// return err
+				}
 			}
 		}()
 	}
