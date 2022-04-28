@@ -53,20 +53,20 @@ func getContractRecordFromEvent(evr *coretypes.ResultEvent) (*ContractRecord, er
 		cr.CollectPremium = metadata[EVENT_FIELD_COLLECT_PREMIUM].(bool)
 		cr.MetadataJson = evr.Events[EVENT_ContractRewardCalculationEvent_METADATA][0]
 
-		intValue, err := strconv.Atoi(metadata[EVENT_FIELD_PREMIUM_PERCENTAGE_CHARGED].(string))
+		intValue, err := strconv.ParseUint(metadata[EVENT_FIELD_PREMIUM_PERCENTAGE_CHARGED].(string), 10, 64)
 		if err != nil {
 			return nil, err
 		}
-		cr.PremiumPercentageCharged = uint64(intValue)
+		cr.PremiumPercentageCharged = intValue
 	}
 
 	if len(evr.Events[EVENT_ContractRewardCalculationEvent_GAS_CONSUMED]) > 0 {
 
-		intValue, err := strconv.Atoi(strings.Trim(evr.Events[EVENT_ContractRewardCalculationEvent_GAS_CONSUMED][0], "\""))
+		intValue, err := strconv.ParseUint(strings.Trim(evr.Events[EVENT_ContractRewardCalculationEvent_GAS_CONSUMED][0], "\""), 10, 64)
 		if err != nil {
 			return nil, fmt.Errorf("error in Unmarshaling '%s': %v", EVENT_ContractRewardCalculationEvent_GAS_CONSUMED, err)
 		}
-		cr.GasConsumed = uint64(intValue)
+		cr.GasConsumed = intValue
 	}
 
 	if len(evr.Events[EVENT_ContractRewardCalculationEvent_CONTRACT_REWARDS]) > 0 {
