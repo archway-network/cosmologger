@@ -172,7 +172,7 @@ func CreateTables(db *database.Database) error {
 			"rewardAddress" character varying(255) COLLATE pg_catalog."default",
 			"developerAddress" character varying(255) COLLATE pg_catalog."default",
 			"blockHeight" bigint,
-			"gasConsumed" bigint,
+			"gasConsumed" numeric,
 			"rewardsDenom" character varying(255) COLLATE pg_catalog."default",
 			"contractRewardsAmount" double precision,
 			"inflationRewardsAmount" double precision,
