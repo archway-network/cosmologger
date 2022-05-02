@@ -22,6 +22,7 @@ func ProcessContractEvents(grpcCnn *grpc.ClientConn, evr *coretypes.ResultEvent,
 	}
 
 	dbRow := rec.getDBRow()
+
 	insertQueue.AddToInsertQueue(database.TABLE_CONTRACTS, dbRow)
 	return nil
 }
@@ -102,7 +103,7 @@ func (c *ContractRecord) getDBRow() database.RowType {
 		database.FIELD_CONTRACTS_REWARD_ADDRESS:             c.RewardAddress,
 		database.FIELD_CONTRACTS_DEVELOPER_ADDRESS:          c.DeveloperAddress,
 		database.FIELD_CONTRACTS_BLOCK_HEIGHT:               c.BlockHeight,
-		database.FIELD_CONTRACTS_GAS_CONSUMED:               c.GasConsumed,
+		database.FIELD_CONTRACTS_GAS_CONSUMED:               fmt.Sprintf("%d", c.GasConsumed),
 		database.FIELD_CONTRACTS_REWARDS_DENOM:              c.ContractRewards.Denom,
 		database.FIELD_CONTRACTS_CONTRACT_REWARDS_AMOUNT:    c.ContractRewards.Amount,
 		database.FIELD_CONTRACTS_INFLATION_REWARDS_AMOUNT:   c.InflationRewards.Amount,
