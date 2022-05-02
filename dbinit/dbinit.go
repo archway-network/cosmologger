@@ -172,7 +172,6 @@ func CreateTables(db *database.Database) error {
 			"rewardAddress" character varying(255) COLLATE pg_catalog."default",
 			"developerAddress" character varying(255) COLLATE pg_catalog."default",
 			"blockHeight" bigint,
-			"gasConsumed" numeric,
 			"rewardsDenom" character varying(255) COLLATE pg_catalog."default",
 			"contractRewardsAmount" double precision,
 			"inflationRewardsAmount" double precision,
@@ -182,6 +181,7 @@ func CreateTables(db *database.Database) error {
 			"premiumPercentageCharged" bigint,
 			"metadataJson" text COLLATE pg_catalog."default",
 			"incId" bigint NOT NULL DEFAULT nextval('"contracts_incId_seq"'::regclass),
+			"gasConsumed" character varying(50) COLLATE pg_catalog."default" DEFAULT 0,
 			CONSTRAINT contracts_pkey PRIMARY KEY ("incId")
 		)
 		TABLESPACE pg_default;`,
