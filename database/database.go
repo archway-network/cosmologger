@@ -137,7 +137,7 @@ func (db *Database) Exec(query string, params QueryParams) (ExecResult, error) {
 
 	switch db.Type {
 	case Postgres:
-		return db.PostgresExec(query, params)
+		return db.PostgresExec(query, params...)
 	}
 
 	return ExecResult{}, fmt.Errorf("no db.Type is set")

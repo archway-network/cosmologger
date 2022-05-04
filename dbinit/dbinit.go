@@ -35,7 +35,8 @@ func DatabaseInit(db *database.Database) {
 
 func NeedToInitDB(db *database.Database) bool {
 
-	SQL := `SELECT * FROM "tx_events" LIMIT 1;`
+	// Check the latest table in the list
+	SQL := `SELECT * FROM "contracts" LIMIT 1;`
 	_, err := db.Query(SQL, database.QueryParams{})
 	if err != nil {
 		if strings.Contains(err.Error(), "does not exist") {
@@ -180,7 +181,7 @@ func CreateTables(db *database.Database) error {
 			"gasRebateToUser" boolean,
 			"premiumPercentageCharged" bigint,
 			"metadataJson" text COLLATE pg_catalog."default",
-			"incId" bigint NOT NULL DEFAULT nextval('"contracts_incId_seq"'::regclass),
+			"incId" bigserial NOT NULL,
 			"gasConsumed" character varying(50) COLLATE pg_catalog."default" DEFAULT 0,
 			CONSTRAINT contracts_pkey PRIMARY KEY ("incId")
 		)
@@ -203,6 +204,7 @@ func CreateTables(db *database.Database) error {
 	}
 
 	for _, SQL := range SQList {
+
 		_, err := db.Exec(SQL, database.QueryParams{})
 		if err != nil {
 			// fmt.Printf("\n\tError in SQL: %+v\n", SQL)
