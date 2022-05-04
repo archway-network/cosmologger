@@ -24,11 +24,21 @@ func ProcessEvents(grpcCnn *grpc.ClientConn, evr coretypes.ResultEvent, db *data
 
 	dbRow := rec.getDBRow()
 	delete(dbRow, database.FIELD_TX_EVENTS_TX_MEMO) //TODO: let's keep it NULL in order to be used in future development if needed
-	insertQueue.AddToInsertQueue(database.TABLE_TX_EVENTS, dbRow)
-	// _, err := db.Insert(database.TABLE_TX_EVENTS, dbRow)
-	// if err != nil {
-	// 	return err
-	// }
+
+	qRes, _ := db.Load(database.TABLE_TX_EVENTS, database.RowType{database.FIELD_TX_EVENTS_TX_HASH: rec.TxHash})
+	if len(qRes) > 0 {
+		// This tx is already in the DB, let's update it
+		go func() {
+			_, err := db.Update(database.TABLE_TX_EVENTS, dbRow, database.RowType{database.FIELD_TX_EVENTS_TX_HASH: rec.TxHash})
+			if err != nil {
+				log.Printf("Err in `Update TX`: %v", err)
+			}
+		}()
+
+	} else {
+
+		insertQueue.AddToInsertQueue(database.TABLE_TX_EVENTS, dbRow)
+	}
 
 	// Let's add validator's info
 	if rec.Validator != "" ||
