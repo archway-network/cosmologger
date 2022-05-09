@@ -134,7 +134,7 @@ func (db *Database) PostgresUpdate(table string, fields RowType, conditions RowT
 		params = append(params, value)
 	}
 
-	return db.PostgresExec(SQL, params)
+	return db.PostgresExec(SQL, params...)
 
 }
 
@@ -154,7 +154,7 @@ func (db *Database) PostgresDelete(table string, conditions RowType) (ExecResult
 
 	// log.Printf("SQL: %v \nParams: %v", SQL, params)
 
-	return db.PostgresExec(SQL, params)
+	return db.PostgresExec(SQL, params...)
 
 }
 
