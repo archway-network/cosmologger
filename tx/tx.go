@@ -217,13 +217,14 @@ func FixEmptyEvents(cli *tmClient.HTTP, db *database.Database) {
 				// Quering the TX from the Node...
 				rec, err := queryTx(cli, txHash)
 				if err != nil {
-					log.Printf("Error in querying TX: %s\n %v", txHash, err)
+					log.Printf("Error in querying TX: %s\t %v", txHash, err)
+					continue
 				}
 				dbRow := rec.getDBRow()
 
 				_, err = db.Update(database.TABLE_TX_EVENTS, dbRow, database.RowType{database.FIELD_TX_EVENTS_TX_HASH: rec.TxHash})
 				if err != nil {
-					log.Printf("[FixEmptyEvents] Err in `Update TX`: %s\n%v", txHash, err)
+					log.Printf("[FixEmptyEvents] Err in `Update TX`: %s\t %v", txHash, err)
 				}
 			}
 
