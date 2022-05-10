@@ -3,7 +3,10 @@ package tx
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
+	"os"
+	"os/exec"
 	"strconv"
 	"strings"
 	"time"
@@ -11,6 +14,9 @@ import (
 	"github.com/archway-network/cosmologger/configs"
 	"github.com/archway-network/cosmologger/database"
 	"github.com/archway-network/cosmologger/validators"
+
+	// sdkClient "github.com/cosmos/cosmos-sdk/client"
+	// authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	tmClient "github.com/tendermint/tendermint/rpc/client/http"
 	coretypes "github.com/tendermint/tendermint/rpc/core/types"
 	tmTypes "github.com/tendermint/tendermint/types"
@@ -26,7 +32,7 @@ func ProcessEvents(grpcCnn *grpc.ClientConn, evr coretypes.ResultEvent, db *data
 	delete(dbRow, database.FIELD_TX_EVENTS_TX_MEMO) //TODO: let's keep it NULL in order to be used in future development if needed
 
 	qRes, _ := db.Load(database.TABLE_TX_EVENTS, database.RowType{database.FIELD_TX_EVENTS_TX_HASH: rec.TxHash})
-	if len(qRes) > 0 {
+	if len(qRes) > 0 && rec.Module != "" {
 		// This tx is already in the DB, let's update it
 		go func() {
 			_, err := db.Update(database.TABLE_TX_EVENTS, dbRow, database.RowType{database.FIELD_TX_EVENTS_TX_HASH: rec.TxHash})
@@ -39,6 +45,14 @@ func ProcessEvents(grpcCnn *grpc.ClientConn, evr coretypes.ResultEvent, db *data
 
 		insertQueue.AddToInsertQueue(database.TABLE_TX_EVENTS, dbRow)
 	}
+
+	// recJSON, err := json.MarshalIndent(rec, "", "  ")
+	// if err != nil {
+	// 	log.Fatalf(err.Error())
+	// }
+	// if err := os.WriteFile("./txs/"+rec.TxHash+".txt", []byte(recJSON), 0666); err != nil {
+	// 	log.Fatal(err)
+	// }
 
 	// Let's add validator's info
 	if rec.Validator != "" ||
@@ -183,4 +197,145 @@ func Start(cli *tmClient.HTTP, grpcCnn *grpc.ClientConn, db *database.Database, 
 			}
 		}
 	}()
+
+	FixEmptyEvents(cli, db)
+}
+
+// Since some TX events are delayed and we catch them empty, we need to query them later to get them fixed
+func FixEmptyEvents(cli *tmClient.HTTP, db *database.Database) {
+	go func() {
+
+		for {
+			// Get all TX events that are empty
+			rows, err := db.Load(database.TABLE_TX_EVENTS, database.RowType{database.FIELD_TX_EVENTS_MODULE: ""})
+			if err != nil {
+				log.Printf("Error in loading empty TX events: %v", err)
+			}
+
+			for _, row := range rows {
+				txHash := string(row[database.FIELD_TX_EVENTS_TX_HASH].([]uint8))
+				// Quering the TX from the Node...
+				rec, err := queryTx(cli, txHash)
+				if err != nil {
+					log.Printf("Error in querying TX: %s\n %v", txHash, err)
+				}
+				dbRow := rec.getDBRow()
+
+				_, err = db.Update(database.TABLE_TX_EVENTS, dbRow, database.RowType{database.FIELD_TX_EVENTS_TX_HASH: rec.TxHash})
+				if err != nil {
+					log.Printf("[FixEmptyEvents] Err in `Update TX`: %s\n%v", txHash, err)
+				}
+			}
+
+			time.Sleep(time.Second)
+		}
+	}()
+}
+
+func queryTx(cli *tmClient.HTTP, txHash string) (TxRecord, error) {
+
+	wsURI := os.Getenv("RPC_ADDRESS")
+
+	// A dirty hack to get the things done
+	cmd := exec.Command("archwayd", "query", "tx", txHash, "--node", wsURI, "--output", "json")
+	stdout, err := cmd.Output()
+
+	if err != nil {
+		return TxRecord{}, err
+	}
+
+	rec := getTxRecordFromJson(stdout)
+
+	return rec, nil
+
+}
+
+func getTxRecordFromJson(jsonByte []byte) TxRecord {
+	var txRecord TxRecord
+	// jsonStr = strings.Trim(jsonStr, " \r\n\t")
+
+	jsonVar := make(map[string]interface{})
+	err := json.Unmarshal([]byte(jsonByte), &jsonVar)
+	if err != nil {
+		fmt.Printf("Unmarshaling JSON Err: %v\n", err.Error())
+		return txRecord
+	}
+
+	if jsonVar["height"] != nil && len(jsonVar["height"].(string)) > 0 {
+		txRecord.Height, _ = strconv.ParseUint(jsonVar["height"].(string), 10, 64)
+	}
+
+	if jsonVar["txhash"] != nil && len(jsonVar["txhash"].(string)) > 0 {
+		txRecord.TxHash = jsonVar["txhash"].(string)
+	}
+
+	if jsonVar["codespace"] != nil && len(jsonVar["codespace"].(string)) > 0 {
+		txRecord.Module = jsonVar["codespace"].(string)
+	}
+
+	messages := []interface{}{}
+	if txJson, ok := jsonVar["tx"].(map[string]interface{}); ok {
+		if body, ok := txJson["body"].(map[string]interface{}); ok {
+			if msgs, ok := body["messages"].([]interface{}); ok {
+				messages = msgs
+			}
+		}
+	}
+
+	for i := range messages {
+		msg := messages[i].(map[string]interface{})
+		if val, ok := msg["@type"].(string); ok {
+			if val == "" {
+				val = "NA"
+			}
+			txRecord.Action = val
+		}
+
+		if val, ok := msg["sender"].(string); ok {
+			txRecord.Sender = val
+		} else if val, ok := msg["delegator_address"].(string); ok {
+			txRecord.Sender = val
+		} else if val, ok := msg["inputs"].([]interface{}); ok {
+
+			if addr, ok := val[0].(map[string]interface{})["address"].(string); ok {
+				txRecord.Sender = addr
+			}
+		}
+
+		if val, ok := msg["validator_address"].(string); ok {
+			txRecord.Receiver = val
+			txRecord.Validator = val
+		} else if val, ok := msg["recipient"].(string); ok {
+			txRecord.Receiver = val
+		} else if val, ok := msg["outputs"].([]interface{}); ok {
+			if addr, ok := val[0].(map[string]interface{})["address"].(string); ok {
+				txRecord.Receiver = addr
+			}
+		}
+
+		if val, ok := msg["value"].(map[string]string); ok {
+			txRecord.Amount = val["amount"] + val["denom"]
+		}
+
+	}
+
+	if val, ok := jsonVar["signatures"].([]string); ok {
+		if len(val) > 0 {
+			txRecord.TxSignature = val[0]
+		}
+	}
+
+	// if jsonVar["proposal_vote.proposal_id"] != nil && len(jsonVar["proposal_vote.proposal_id"]) > 0 {
+	// 	txRecord.ProposalId, _ = strconv.ParseUint(jsonVar["proposal_vote.proposal_id"][0], 10, 64)
+
+	// } else if jsonVar["proposal_deposit.proposal_id"] != nil && len(jsonVar["proposal_deposit.proposal_id"]) > 0 {
+
+	// 	txRecord.ProposalId, _ = strconv.ParseUint(jsonVar["proposal_deposit.proposal_id"][0], 10, 64)
+	// }
+
+	txRecord.Json = string(jsonByte)
+
+	// LogTime: is recorded by the DBMS itself
+
+	return txRecord
 }
