@@ -50,6 +50,8 @@ RUN go get github.com/go-delve/delve/cmd/dlv \
     && go build -mod=readonly -buildvcs=false -o /build/app . \
     && cp conf.json /build/
 
+ENV PATH=$PATH:/build
+
 # ENTRYPOINT [ "dlv", "debug", "--headless", "--log", "--listen=:2345", "--api-version=2"]
 ENTRYPOINT ["tail", "-f", "/dev/null"]
 

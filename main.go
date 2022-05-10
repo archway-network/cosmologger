@@ -11,17 +11,22 @@ import (
 	"syscall"
 	"time"
 
+	// "github.com/archway-network/archway/app/params"
+	// "github.com/archway-network/archway/app"
 	"github.com/archway-network/cosmologger/block"
 	"github.com/archway-network/cosmologger/configs"
 	"github.com/archway-network/cosmologger/database"
 	"github.com/archway-network/cosmologger/dbinit"
 	"github.com/archway-network/cosmologger/tx"
 
+	// "github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	// "github.com/cosmos/cosmos-sdk/x/auth/legacy/legacytx"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 
 	tmClient "github.com/tendermint/tendermint/rpc/client/http"
+	// tmClient "github.com/tendermint/tendermint/rpc/client"
 )
 
 /*--------------*/
@@ -119,6 +124,89 @@ func main() {
 
 	/*------------------*/
 
+	// txHash := "A7E403D4B07A1C0D969DDE2560D306FC161650FF129B86382E213313F5757818"
+	// query := fmt.Sprintf("tx.hash='%s'", txHash)
+
+	// cliCtx, cancel := context.WithTimeout(context.Background(), time.Second*time.Duration(configs.Configs.GRPC.CallTimeout))
+	// defer cancel()
+
+	// // hashByte, err := hex.DecodeString(txHash)
+	// // cli.Tx(hashByte, false)
+
+	// // res, err := cli.TxSearch(cliCtx, query, true, nil, nil, "")
+	// // fmt.Printf("res: %#v\n", res.Txs[0])
+	// // tx := *sdk.TxDecoder(res.Txs[0].TxResult.Data)
+
+	// // tx, err := sdk.TxDecoder(res.Txs[0].Tx.)
+	// // fmt.Printf("\nTX: %+v\n", tx.TxBody)
+
+	// // qClient := authx.NewQueryClient(&grpc.ClientConn{})
+	// // fmt.Printf("qClient: %v\n", qClient)
+
+	// // cliCtx
+
+	// // cliCtx := sdkClient.conte
+
+	// // res, err := authx.QueryTx(cliCtx, txHash)
+
+	// tcli, err := sdkClient.NewClientFromNode(wsURI)
+	// fmt.Printf("err: %v\n", err)
+
+	// res, err := tcli.TxSearch(cliCtx, query, true, nil, nil, "")
+	// fmt.Printf("err: %v\n", err)
+	// // fmt.Printf("res: %#v\n", res.Txs[0].Tx)
+
+	// /*------------*/
+
+	// // encodingConfig := params.MakeEncodingConfig()
+	// encodingConfig := MakeEncodingConfig()
+	// // encodingConfig.TxConfig.TxJSONDecoder()
+
+	// txb, err := encodingConfig.TxConfig.TxDecoder()(res.Txs[0].Tx)
+	// // txb, err := sdk.TxDecoder(res.Txs[0].Tx)
+
+	// // var cdc *codec.LegacyAmino
+
+	// // txb := legacytx.StdTx{}
+	// // err = cdc.Unmarshal(res.Txs[0].Tx, &txb)
+
+	// fmt.Printf("\n========\ntxb: %v\n\n========\n", txb)
+
+	// clientCtx := sdkClient.Context{
+	// 	// NodeURI: wsURI,
+	// 	// ChainID: "torii-1",
+	// 	Client:   cli,
+	// 	TxConfig: encodingConfig.TxConfig,
+	// }
+
+	// // // fmt.Printf("\n========\nclientCtx: %+v\n", clientCtx)
+	// output, err := authtx.QueryTx(clientCtx, txHash)
+	// if err != nil {
+	// 	panic(err)
+	// }
+
+	// fmt.Printf("\n========\noutput: %+v\n\n========\n", output)
+
+	// if output.Empty() {
+	// 	panic(fmt.Errorf("no transaction found with hash %s", txHash))
+	// }
+
+	// fmt.Printf("\n========\n%+v\n", clientCtx.PrintProto(output))
+
+	// // A dirty hack to get the things done
+	// cmd := exec.Command("archwayd", "query", "tx", txHash, "--node", wsURI, "--output", "json")
+	// stdout, err := cmd.Output()
+
+	// rec := getTxRecordFromJson(string(stdout))
+
+	// js, _ := json.MarshalIndent(rec, "", "  ")
+
+	// fmt.Printf("\n-------------------------\n\nREC: %s\n", js)
+
+	// panic(err)
+
+	/*------------------*/
+
 	// Due to some limitations of the RPC APIs we need to call GRPC ones as well
 	grpcCnn, err := GrpcConnect()
 	if err != nil {
@@ -132,6 +220,7 @@ func main() {
 	fmt.Println("\nListening...")
 	// Running the listeners
 	tx.Start(cli, grpcCnn, db, insertQueue)
+	// tx.FixEmptyEvents(cli, grpcCnn, db)
 	block.Start(cli, grpcCnn, db, insertQueue)
 
 	/*------------------*/
@@ -180,3 +269,13 @@ func SetBech32Prefixes() {
 	config.SetBech32PrefixForConsensusNode(configs.Configs.Bech32Prefix.Consensus.Address, configs.Configs.Bech32Prefix.Consensus.PubKey)
 	config.Seal()
 }
+
+// // MakeEncodingConfig creates a new EncodingConfig with all modules registered
+// func MakeEncodingConfig() params.EncodingConfig {
+// 	encodingConfig := params.MakeEncodingConfig()
+// 	std.RegisterLegacyAminoCodec(encodingConfig.Amino)
+// 	std.RegisterInterfaces(encodingConfig.InterfaceRegistry)
+// 	// ModuleBasics.RegisterLegacyAminoCodec(encodingConfig.Amino)
+// 	// ModuleBasics.RegisterInterfaces(encodingConfig.InterfaceRegistry)
+// 	return encodingConfig
+// }
