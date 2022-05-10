@@ -7,8 +7,10 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"os/signal"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/archway-network/cosmologger/configs"
@@ -203,34 +205,51 @@ func Start(cli *tmClient.HTTP, grpcCnn *grpc.ClientConn, db *database.Database, 
 
 // Since some TX events are delayed and we catch them empty, we need to query them later to get them fixed
 func FixEmptyEvents(cli *tmClient.HTTP, db *database.Database) {
+
+	quitChannel := make(chan os.Signal, 1)
+	signal.Notify(quitChannel,
+		syscall.SIGTERM,
+		syscall.SIGINT,
+		syscall.SIGQUIT,
+		os.Kill, //nolint
+		os.Interrupt)
+
 	go func() {
 
 		for {
-			// Get all TX events that are empty
-			rows, err := db.Load(database.TABLE_TX_EVENTS, database.RowType{database.FIELD_TX_EVENTS_MODULE: ""})
-			if err != nil {
-				log.Printf("Error in loading empty TX events: %v", err)
-			}
+			select {
+			case <-quitChannel:
+				return
+			default:
 
-			for _, row := range rows {
-				txHash := string(row[database.FIELD_TX_EVENTS_TX_HASH].([]uint8))
-				// Quering the TX from the Node...
-				rec, err := queryTx(cli, txHash)
+				// Get all TX events that are empty
+				rows, err := db.Load(database.TABLE_TX_EVENTS, database.RowType{database.FIELD_TX_EVENTS_MODULE: ""})
 				if err != nil {
-					log.Printf("Error in querying TX: %s\t %v", txHash, err)
-					continue
+					log.Printf("Error in loading empty TX events: %v", err)
 				}
-				dbRow := rec.getDBRow()
 
-				_, err = db.Update(database.TABLE_TX_EVENTS, dbRow, database.RowType{database.FIELD_TX_EVENTS_TX_HASH: rec.TxHash})
-				if err != nil {
-					log.Printf("[FixEmptyEvents] Err in `Update TX`: %s\t %v", txHash, err)
+				for _, row := range rows {
+					txHash := string(row[database.FIELD_TX_EVENTS_TX_HASH].([]uint8))
+					// Quering the TX from the Node...
+					rec, err := queryTx(cli, txHash)
+					if err != nil {
+						log.Printf("Error in querying TX: %s\t %v", txHash, err)
+						continue
+					}
+					rec.LogTime = time.Now()
+					dbRow := rec.getDBRow()
+
+					_, err = db.Update(database.TABLE_TX_EVENTS, dbRow, database.RowType{database.FIELD_TX_EVENTS_TX_HASH: rec.TxHash})
+					if err != nil {
+						log.Printf("[FixEmptyEvents] Err in `Update TX`: %s\t %v", txHash, err)
+					}
 				}
+
+				time.Sleep(time.Second)
 			}
-
-			time.Sleep(time.Second)
 		}
 	}()
+
 }
 
 func queryTx(cli *tmClient.HTTP, txHash string) (TxRecord, error) {
@@ -281,6 +300,10 @@ func getTxRecordFromJson(jsonByte []byte) TxRecord {
 				messages = msgs
 			}
 		}
+
+		if val, ok := txJson["signatures"].([]interface{}); ok {
+			txRecord.TxSignature = val[0].(string)
+		}
 	}
 
 	for i := range messages {
@@ -314,16 +337,12 @@ func getTxRecordFromJson(jsonByte []byte) TxRecord {
 			}
 		}
 
-		if val, ok := msg["value"].(map[string]string); ok {
-			txRecord.Amount = val["amount"] + val["denom"]
+		if val, ok := msg["value"].(map[string]interface{}); ok {
+			txRecord.Amount = val["amount"].(string) + val["denom"].(string)
+		} else if val, ok := msg["amount"].(map[string]interface{}); ok {
+			txRecord.Amount = val["amount"].(string) + val["denom"].(string)
 		}
 
-	}
-
-	if val, ok := jsonVar["signatures"].([]string); ok {
-		if len(val) > 0 {
-			txRecord.TxSignature = val[0]
-		}
 	}
 
 	// if jsonVar["proposal_vote.proposal_id"] != nil && len(jsonVar["proposal_vote.proposal_id"]) > 0 {
@@ -333,6 +352,10 @@ func getTxRecordFromJson(jsonByte []byte) TxRecord {
 
 	// 	txRecord.ProposalId, _ = strconv.ParseUint(jsonVar["proposal_deposit.proposal_id"][0], 10, 64)
 	// }
+
+	if txRecord.Module == "" {
+		txRecord.Module = "NA"
+	}
 
 	txRecord.Json = string(jsonByte)
 
