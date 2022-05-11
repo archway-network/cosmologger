@@ -129,6 +129,7 @@ func CreateTables(db *database.Database) error {
 			"oprAddr" character varying(255) COLLATE pg_catalog."default" NOT NULL,
 			"consAddr" character varying(255) COLLATE pg_catalog."default" NOT NULL,
 			"accountAddr" character varying(255) COLLATE pg_catalog."default" NOT NULL,
+			moniker character varying(255) COLLATE pg_catalog."default",
 			CONSTRAINT validators_pkey PRIMARY KEY ("oprAddr", "consAddr", "accountAddr")
 		)
 		

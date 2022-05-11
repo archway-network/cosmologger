@@ -15,7 +15,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 )
 
-func queryConsAddrByValAddr(grpcCnn *grpc.ClientConn, valAddr string) (string, error) {
+func queryValidatorInfoByValAddr(grpcCnn *grpc.ClientConn, valAddr string) (staking.Validator, error) {
 
 	var err error
 	var response *staking.QueryValidatorResponse
@@ -42,9 +42,10 @@ func queryConsAddrByValAddr(grpcCnn *grpc.ClientConn, valAddr string) (string, e
 			continue
 		}
 
-		return GetConsAddressFromConsPubKey(response.Validator.ConsensusPubkey.Value), nil
+		return response.Validator, nil
+
 	}
-	return "", err
+	return staking.Validator{}, err
 }
 
 // This function retrieves the consensus address from the consensus public key
@@ -87,10 +88,12 @@ func AddNewValidator(db *database.Database, grpcCnn *grpc.ClientConn, valAddr st
 		return nil
 	}
 
-	consAddr, err := queryConsAddrByValAddr(grpcCnn, valAddr)
+	vInfo, err := queryValidatorInfoByValAddr(grpcCnn, valAddr)
 	if err != nil {
 		return err
 	}
+	consAddr := GetConsAddressFromConsPubKey(vInfo.ConsensusPubkey.Value)
+	moniker := vInfo.Description.Moniker
 
 	sdkValAddr, err := sdk.ValAddressFromBech32(valAddr)
 	if err != nil {
@@ -102,6 +105,7 @@ func AddNewValidator(db *database.Database, grpcCnn *grpc.ClientConn, valAddr st
 		ConsAddr:    consAddr,
 		OprAddr:     valAddr,
 		AccountAddr: accountAddr,
+		Moniker:     moniker,
 	}
 
 	dbRow := rec.getDBRow()
@@ -115,6 +119,7 @@ func (v ValidatorRecord) getDBRow() database.RowType {
 		database.FIELD_VALIDATORS_CONS_ADDR:    v.ConsAddr,
 		database.FIELD_VALIDATORS_OPR_ADDR:     v.OprAddr,
 		database.FIELD_VALIDATORS_ACCOUNT_ADDR: v.AccountAddr,
+		database.FIELD_VALIDATORS_MONIKER:      v.Moniker,
 	}
 }
 

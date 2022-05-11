@@ -49,6 +49,7 @@ const (
 	FIELD_VALIDATORS_CONS_ADDR    = "consAddr"
 	FIELD_VALIDATORS_OPR_ADDR     = "oprAddr"
 	FIELD_VALIDATORS_ACCOUNT_ADDR = "accountAddr"
+	FIELD_VALIDATORS_MONIKER      = "moniker"
 )
 
 /*-------------------*/
