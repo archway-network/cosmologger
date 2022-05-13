@@ -144,29 +144,31 @@ func CreateTables(db *database.Database) error {
 			ON public.block_signers USING btree
 			("valConsAddr" COLLATE pg_catalog."default" ASC NULLS LAST)
 			TABLESPACE pg_default;`,
+
 		`CREATE TABLE IF NOT EXISTS public.participants
 		(
-			"accountAddress" character varying(200) COLLATE pg_catalog."default" NOT NULL,
-			"fullLegalName" character varying(255) COLLATE pg_catalog."default",
-			"githubHandle" character varying(255) COLLATE pg_catalog."default",
 			"emailAddress" character varying(255) COLLATE pg_catalog."default" NOT NULL,
-			pubkey character varying(255) COLLATE pg_catalog."default",
+			"accountAddress" character varying(200) COLLATE pg_catalog."default",
+			"fullLegalName" character varying(255) COLLATE pg_catalog."default",
+			"country" character varying(255) COLLATE pg_catalog."default",
+			"githubHandle" character varying(255) COLLATE pg_catalog."default",
+			"pubkey" character varying(255) COLLATE pg_catalog."default",
 			"kycSessionId" character varying(255) COLLATE pg_catalog."default",
 			"kycVerified" boolean DEFAULT false,
-			CONSTRAINT participants_pkey PRIMARY KEY ("accountAddress")
+			CONSTRAINT participants_pkey PRIMARY KEY ("emailAddress")
 		)
-		
 		TABLESPACE pg_default;`,
 
 		`CREATE INDEX IF NOT EXISTS "emailAddress"
-		ON public.participants USING btree
-		("emailAddress" COLLATE pg_catalog."default" ASC NULLS LAST)
-		TABLESPACE pg_default;`,
+			ON public.participants USING btree
+			("country" COLLATE pg_catalog."default" ASC NULLS LAST)
+			TABLESPACE pg_default;`,
 
 		`CREATE INDEX IF NOT EXISTS "kycVerified"
-		ON public.participants USING btree
-		("kycVerified" ASC NULLS LAST)
-		TABLESPACE pg_default;`,
+			ON public.participants USING btree
+			("emailAddress" COLLATE pg_catalog."default" ASC NULLS LAST,
+			"kycVerified" ASC NULLS LAST)
+			TABLESPACE pg_default;`,
 
 		`CREATE TABLE IF NOT EXISTS public.contracts
 		(
