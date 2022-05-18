@@ -3,8 +3,16 @@ package block
 import (
 	"context"
 	"encoding/base64"
+	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"log"
+	"os"
+	"os/exec"
+	"os/signal"
+	"regexp"
+	"strings"
+	"syscall"
 	"time"
 
 	"github.com/archway-network/cosmologger/configs"
@@ -61,18 +69,23 @@ func ProcessEvents(grpcCnn *grpc.ClientConn, evr *coretypes.ResultEvent, db *dat
 }
 
 func getBlockRecordFromEvent(evr *coretypes.ResultEvent) *BlockRecord {
-	var br BlockRecord
 
 	b := evr.Data.(tmTypes.EventDataNewBlock)
-	br.BlockHash = b.Block.Hash().String()
+	return getBlockRecordFromTmBlock(b.Block)
+}
 
-	br.Height = uint64(b.Block.Height)
-	br.NumOfTxs = uint64(len(b.Block.Txs))
-	br.Time = b.Block.Time
+func getBlockRecordFromTmBlock(b *tmTypes.Block) *BlockRecord {
+	var br BlockRecord
 
-	for i := range b.Block.LastCommit.Signatures {
+	br.BlockHash = b.Hash().String()
 
-		consAddr, err := sdk.ConsAddressFromHex(b.Block.LastCommit.Signatures[i].ValidatorAddress.String())
+	br.Height = uint64(b.Height)
+	br.NumOfTxs = uint64(len(b.Txs))
+	br.Time = b.Time
+
+	for i := range b.LastCommit.Signatures {
+
+		consAddr, err := sdk.ConsAddressFromHex(b.LastCommit.Signatures[i].ValidatorAddress.String())
 		if err != nil {
 			continue // just ignore this signer as it might not be running and we face some strange error
 		}
@@ -80,8 +93,8 @@ func getBlockRecordFromEvent(evr *coretypes.ResultEvent) *BlockRecord {
 		br.LastBlockSigners = append(br.LastBlockSigners, BlockSignersRecord{
 			BlockHeight: br.Height - 1, // Because the signers are for the previous block
 			ValConsAddr: consAddr.String(),
-			Time:        b.Block.LastCommit.Signatures[i].Timestamp,
-			Signature:   base64.StdEncoding.EncodeToString(b.Block.LastCommit.Signatures[i].Signature),
+			Time:        b.LastCommit.Signatures[i].Timestamp,
+			Signature:   base64.StdEncoding.EncodeToString(b.LastCommit.Signatures[i].Signature),
 		})
 	}
 
@@ -131,4 +144,189 @@ func Start(cli *tmClient.HTTP, grpcCnn *grpc.ClientConn, db *database.Database, 
 			}
 		}
 	}()
+
+	fixMissingBlocks(cli, db, insertQueue)
+}
+
+// Sometimes some blocks get missed, so this function attempts to find them and fix them
+func fixMissingBlocks(cli *tmClient.HTTP, db *database.Database, insertQueue *database.InsertQueue) {
+
+	quitChannel := make(chan os.Signal, 1)
+	signal.Notify(quitChannel,
+		syscall.SIGTERM,
+		syscall.SIGINT,
+		syscall.SIGQUIT,
+		os.Kill, //nolint
+		os.Interrupt)
+
+	go func() {
+
+		for {
+			select {
+			case <-quitChannel:
+				return
+			default:
+
+				// Get all missing blocks
+				latestBlockHeight, err := GetLatestBlockHeight(db)
+				if err != nil {
+					log.Printf("Error in finding LatestBlockHeight: %v", err)
+				}
+				missingBlocks, err := findMissingBlocks(1, latestBlockHeight, db)
+				if err != nil {
+					log.Printf("Error in finding missing blocks: %v", err)
+				}
+
+				for _, bh := range missingBlocks {
+
+					// Querying the Block from the Node...
+					rec, txs, err := queryBlock(bh)
+					if err != nil {
+						log.Printf("Error in querying Block: %d\t %v", bh, err)
+						continue
+					}
+					fmt.Printf("Add missing Block: %s\tH: %d\tTxs: %d\n", rec.BlockHash, rec.Height, rec.NumOfTxs)
+
+					dbRow := rec.getBlockDBRow()
+					insertQueue.AddToInsertQueue(database.TABLE_BLOCKS, dbRow)
+
+					// Adding the signers of the previous block
+					dbRows := make([]database.RowType, len(rec.LastBlockSigners))
+					for i := range rec.LastBlockSigners {
+						dbRows[i] = rec.LastBlockSigners[i].getBlockSignerDBRow()
+					}
+					insertQueue.AddToInsertQueue(database.TABLE_BLOCK_SIGNERS, dbRows...)
+
+					// Insert TX hashes into the `tx_events`,
+					// so the `tx.fixEmptyEvents` can pick them up, query them and fix them
+					dbRows = make([]database.RowType, len(*txs))
+					for i := range *txs {
+						txHash := strings.ToUpper(hex.EncodeToString((*txs)[i].Hash()))
+						dbRows[i] = database.RowType{
+							database.FIELD_TX_EVENTS_TX_HASH: txHash,
+						}
+					}
+					insertQueue.AddToInsertQueue(database.TABLE_TX_EVENTS, dbRows...)
+				}
+
+				time.Sleep(time.Second)
+			}
+		}
+	}()
+
+}
+
+func queryBlock(height uint64) (*BlockRecord, *tmTypes.Txs, error) {
+
+	wsURI := os.Getenv("RPC_ADDRESS")
+
+	heightStr := fmt.Sprintf("%d", height)
+
+	// A dirty hack to get the things done
+	cmd := exec.Command("archwayd", "query", "block", heightStr, "--node", wsURI) //, "--output", "json")
+	stdout, err := cmd.Output()
+
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// Since unmarshaling fails to the tmType.Block (Consensus.block.header.version.block)
+	// We need to modify the JSON output to make it work
+	stdoutStr := string(stdout)
+	stdoutStr = regexp.MustCompile(`("block":)"([0-9]*?)"`).ReplaceAllString(stdoutStr, `$1$2`)
+	stdoutStr = regexp.MustCompile(`("height":)"([0-9]*?)"`).ReplaceAllString(stdoutStr, `$1$2`)
+
+	type tmBlock struct {
+		tmTypes.BlockID `json:"block_id"`
+		tmTypes.Block   `json:"block"`
+	}
+	var b tmBlock
+
+	err = json.Unmarshal([]byte(stdoutStr), &b)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	rec := getBlockRecordFromTmBlock(&b.Block)
+	return rec, &b.Block.Txs, nil
+
+}
+
+func findMissingBlocks(start, end uint64, db *database.Database) ([]uint64, error) {
+	var missingBlocks []uint64
+
+	totalBlocks, err := GetTotalBlocksByRange(start, end, db)
+	if err != nil {
+		return missingBlocks, err
+	}
+	expectedBlocks := end - start + 1
+
+	if totalBlocks != expectedBlocks {
+		if start == end {
+			missingBlocks = append(missingBlocks, start)
+		} else {
+			middle := (start + end) / 2
+			mb1, err := findMissingBlocks(start, middle, db)
+			if err != nil {
+				return missingBlocks, err
+			}
+			missingBlocks = append(missingBlocks, mb1...)
+
+			mb2, err := findMissingBlocks(middle+1, end, db)
+			if err != nil {
+				return missingBlocks, err
+			}
+			missingBlocks = append(missingBlocks, mb2...)
+		}
+	}
+
+	return missingBlocks, nil
+}
+
+func GetTotalBlocksByRange(start, end uint64, db *database.Database) (uint64, error) {
+
+	SQL := fmt.Sprintf(`
+		SELECT 
+			COUNT(*) AS "total"
+		FROM "%s"
+		WHERE 
+			"height" >= $1 AND 
+			"height" <= $2`,
+		database.TABLE_BLOCKS,
+	)
+
+	rows, err := db.Query(SQL, database.QueryParams{start, end})
+	if err != nil {
+		return 0, err
+	}
+	if len(rows) == 0 ||
+		rows[0] == nil ||
+		rows[0]["total"] == nil {
+		return 0, nil
+	}
+
+	return uint64(rows[0]["total"].(int64)), nil
+}
+
+func GetLatestBlockHeight(db *database.Database) (uint64, error) {
+
+	SQL := fmt.Sprintf(
+		`SELECT MAX("%s") AS "result" FROM "%s"`,
+
+		database.FIELD_BLOCKS_HEIGHT,
+		database.TABLE_BLOCKS,
+	)
+
+	rows, err := db.Query(SQL, database.QueryParams{})
+	if err != nil {
+		return 0, err
+	}
+
+	if len(rows) == 0 ||
+		rows[0] == nil ||
+		rows[0]["result"] == nil {
+		return 0, nil
+	}
+
+	return uint64(rows[0]["result"].(int64)), nil
 }

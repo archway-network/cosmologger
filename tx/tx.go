@@ -200,11 +200,11 @@ func Start(cli *tmClient.HTTP, grpcCnn *grpc.ClientConn, db *database.Database, 
 		}
 	}()
 
-	FixEmptyEvents(cli, db)
+	fixEmptyEvents(cli, db)
 }
 
 // Since some TX events are delayed and we catch them empty, we need to query them later to get them fixed
-func FixEmptyEvents(cli *tmClient.HTTP, db *database.Database) {
+func fixEmptyEvents(cli *tmClient.HTTP, db *database.Database) {
 
 	quitChannel := make(chan os.Signal, 1)
 	signal.Notify(quitChannel,
