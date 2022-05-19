@@ -185,7 +185,7 @@ func fixMissingBlocks(cli *tmClient.HTTP, db *database.Database, insertQueue *da
 						log.Printf("Error in querying Block: %d\t %v", bh, err)
 						continue
 					}
-					fmt.Printf("Add missing Block: %s\tH: %d\tTxs: %d\n", rec.BlockHash, rec.Height, rec.NumOfTxs)
+					fmt.Printf("Block: %s\tH: %d\tTxs: %d\t[Add missing]\n", rec.BlockHash, rec.Height, rec.NumOfTxs)
 
 					dbRow := rec.getBlockDBRow()
 					insertQueue.AddToInsertQueue(database.TABLE_BLOCKS, dbRow)
@@ -193,7 +193,7 @@ func fixMissingBlocks(cli *tmClient.HTTP, db *database.Database, insertQueue *da
 					// Adding the signers of the previous block
 					for i := range rec.LastBlockSigners {
 						// We insert them one by one, in case one fails due to e.g. duplication, the others will go through
-						insertQueue.AddToInsertQueue(database.TABLE_BLOCKS, rec.LastBlockSigners[i].getBlockSignerDBRow())
+						insertQueue.AddToInsertQueue(database.TABLE_BLOCK_SIGNERS, rec.LastBlockSigners[i].getBlockSignerDBRow())
 					}
 
 					// Insert TX hashes into the `tx_events`,
