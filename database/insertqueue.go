@@ -53,7 +53,7 @@ func (i *InsertQueue) Start() error {
 				} else {
 					_, err := i.db.BatchInsert(item.Table, item.Rows...)
 					if err != nil {
-						log.Printf("Error in Async Insert: %v\n", err)
+						log.Printf("Error in Async Batch Insert: %v\n", err)
 					}
 				}
 			}
