@@ -41,7 +41,7 @@ func ProcessEvents(grpcCnn *grpc.ClientConn, evr *coretypes.ResultEvent, db *dat
 	insertQueue.AddToInsertQueue(database.TABLE_BLOCK_SIGNERS, dbRows...)
 
 	// Let's add genesis validator's info
-	if !genesisValidatorsDone && rec.Height > 20 {
+	if !genesisValidatorsDone && rec.Height > 50 {
 		// Let's do it only once
 		genesisValidatorsDone = true
 

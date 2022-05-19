@@ -36,7 +36,11 @@ func ProcessEvents(grpcCnn *grpc.ClientConn, evr coretypes.ResultEvent, db *data
 	if len(qRes) > 0 && rec.Module != "" {
 		// This tx is already in the DB, let's update it
 		go func() {
-			_, err := db.Update(database.TABLE_TX_EVENTS, dbRow, database.RowType{database.FIELD_TX_EVENTS_TX_HASH: rec.TxHash})
+			_, err := db.Update(
+				database.TABLE_TX_EVENTS,
+				dbRow,
+				database.RowType{database.FIELD_TX_EVENTS_TX_HASH: rec.TxHash},
+			)
 			if err != nil {
 				log.Printf("Err in `Update TX`: %v", err)
 			}
