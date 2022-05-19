@@ -31,7 +31,6 @@ func ProcessEvents(grpcCnn *grpc.ClientConn, evr coretypes.ResultEvent, db *data
 	rec.LogTime = time.Now()
 
 	dbRow := rec.getDBRow()
-	delete(dbRow, database.FIELD_TX_EVENTS_TX_MEMO) //TODO: let's keep it NULL in order to be used in future development if needed
 
 	qRes, _ := db.Load(database.TABLE_TX_EVENTS, database.RowType{database.FIELD_TX_EVENTS_TX_HASH: rec.TxHash})
 	if len(qRes) > 0 && rec.Module != "" {
@@ -47,14 +46,6 @@ func ProcessEvents(grpcCnn *grpc.ClientConn, evr coretypes.ResultEvent, db *data
 
 		insertQueue.AddToInsertQueue(database.TABLE_TX_EVENTS, dbRow)
 	}
-
-	// recJSON, err := json.MarshalIndent(rec, "", "  ")
-	// if err != nil {
-	// 	log.Fatalf(err.Error())
-	// }
-	// if err := os.WriteFile("./txs/"+rec.TxHash+".txt", []byte(recJSON), 0666); err != nil {
-	// 	log.Fatal(err)
-	// }
 
 	// Let's add validator's info
 	if rec.Validator != "" ||
