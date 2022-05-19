@@ -191,22 +191,21 @@ func fixMissingBlocks(cli *tmClient.HTTP, db *database.Database, insertQueue *da
 					insertQueue.AddToInsertQueue(database.TABLE_BLOCKS, dbRow)
 
 					// Adding the signers of the previous block
-					dbRows := make([]database.RowType, len(rec.LastBlockSigners))
 					for i := range rec.LastBlockSigners {
-						dbRows[i] = rec.LastBlockSigners[i].getBlockSignerDBRow()
+						// We insert them one by one, in case one fails due to e.g. duplication, the others will go through
+						insertQueue.AddToInsertQueue(database.TABLE_BLOCKS, rec.LastBlockSigners[i].getBlockSignerDBRow())
 					}
-					insertQueue.AddToInsertQueue(database.TABLE_BLOCK_SIGNERS, dbRows...)
 
 					// Insert TX hashes into the `tx_events`,
 					// so the `tx.fixEmptyEvents` can pick them up, query them and fix them
-					dbRows = make([]database.RowType, len(*txs))
 					for i := range *txs {
 						txHash := strings.ToUpper(hex.EncodeToString((*txs)[i].Hash()))
-						dbRows[i] = database.RowType{
+						// We insert them one by one, in case one fails due to e.g. duplication, the others will go through
+						insertQueue.AddToInsertQueue(database.TABLE_TX_EVENTS, database.RowType{
 							database.FIELD_TX_EVENTS_TX_HASH: txHash,
-						}
+						})
 					}
-					insertQueue.AddToInsertQueue(database.TABLE_TX_EVENTS, dbRows...)
+
 				}
 
 				time.Sleep(time.Second)
