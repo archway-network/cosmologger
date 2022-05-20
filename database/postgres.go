@@ -201,7 +201,7 @@ func (db *Database) PostgresQuery(query string, params QueryParams) (QueryResult
 
 	rows, err := db.SQLConn.Query(query, params...)
 	if err != nil {
-		return output, fmt.Errorf("DB Err: %v", err)
+		return output, fmt.Errorf("DB Err: %v\nSQL: %s\nParams: %#v", err, query, params)
 	}
 	defer rows.Close()
 
