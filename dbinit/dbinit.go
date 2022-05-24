@@ -189,10 +189,16 @@ func CreateTables(db *database.Database) error {
 			"gasRebateToUser" boolean,
 			"premiumPercentageCharged" bigint,
 			"metadataJson" text COLLATE pg_catalog."default",
-			"incId" bigserial NOT NULL,
-			"gasConsumed" character varying(50) COLLATE pg_catalog."default" DEFAULT 0,
+			"incId" bigint NOT NULL DEFAULT nextval('"contracts_incId_seq"'::regclass),
+			"gasConsumedStr" character varying(100) COLLATE pg_catalog."default" DEFAULT 0,
+			"gasConsumed" bigint DEFAULT 0,
 			CONSTRAINT contracts_pkey PRIMARY KEY ("incId")
 		)
+		TABLESPACE pg_default;`,
+
+		`CREATE INDEX IF NOT EXISTS "gasConsumed"
+		ON public.contracts USING btree
+		("gasConsumed" DESC NULLS LAST)
 		TABLESPACE pg_default;`,
 
 		`CREATE INDEX IF NOT EXISTS "contractAddress"
