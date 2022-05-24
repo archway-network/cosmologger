@@ -76,6 +76,7 @@ const (
 	FIELD_CONTRACTS_REWARD_ADDRESS             = "rewardAddress"
 	FIELD_CONTRACTS_DEVELOPER_ADDRESS          = "developerAddress"
 	FIELD_CONTRACTS_BLOCK_HEIGHT               = "blockHeight"
+	FIELD_CONTRACTS_GAS_CONSUMED_STR           = "gasConsumedStr" //Let's keep it for the moment, just to verify if the number is big enough
 	FIELD_CONTRACTS_GAS_CONSUMED               = "gasConsumed"
 	FIELD_CONTRACTS_REWARDS_DENOM              = "rewardsDenom"
 	FIELD_CONTRACTS_CONTRACT_REWARDS_AMOUNT    = "contractRewardsAmount"
