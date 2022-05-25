@@ -23,7 +23,7 @@ type ContractRecord struct {
 	DeveloperAddress string
 	BlockHeight      uint64
 
-	GasConsumed      uint64           // in DB we changed it to varchar(50) as postgresql does not support uint64
+	GasConsumed      uint64
 	ContractRewards  GasTrackerReward // For sake of simplicity, we consider only one denom per record
 	InflationRewards GasTrackerReward
 	LeftoverRewards  GasTrackerReward
